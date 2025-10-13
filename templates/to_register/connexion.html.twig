@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Connexion - EventHub{% endblock %}
+
+{% block body %}
+    <div class="row justify-content-center py-5">
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-person-circle"></i> Connexion
+                    </h3>
+                    <p class="mb-0 small">Connectez-vous à votre compte EventHub</p>
+                </div>
+
+                <div class="card-body p-4">
+                    {# Affichage des erreurs #}
+                    {% if error %}
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {{ error.messageKey|trans(error.messageData, 'security')|replace({'Invalid credentials.' : 'Identifiant et/ou mot de passe incorrect.'}) }}
+                        </div>
+                    {% endif %}
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="inputEmail" class="form-label">Email</label>
+                            <input type="email"
+                                   value="{{ last_username }}"
+                                   name="_username"
+                                   id="inputEmail"
+                                   class="form-control"
+                                   placeholder="votre@email.com"
+                                   required
+                                   autofocus>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="inputPassword" class="form-label">Mot de passe</label>
+                            <input type="password"
+                                   name="_password"
+                                   id="inputPassword"
+                                   class="form-control"
+                                   placeholder="••••••••"
+                                   required>
+                        </div>
+
+                        <input type="hidden" name="_target_path" value="{{ path('default_home') }}">
+
+                        <button class="btn btn-danger w-100 mb-3" type="submit">
+                            <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                        </button>
+
+                        <div class="text-center">
+                            <small class="text-muted">
+                                Pas encore de compte ?
+                                <a href="{{ path('security_inscription') }}" class="text-danger fw-bold">S'inscrire</a>
+                            </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

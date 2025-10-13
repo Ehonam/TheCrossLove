@@ -3,3 +3,85 @@ controllers:
         path: ../src/Controller/
         namespace: App\Controller
     type: attribute
+
+# Routes publiques
+default_home:
+    path: /
+    controller: App\Controller\DefaultController::index
+
+default_event_index:
+    path: /events
+    controller: App\Controller\EventController::index
+
+default_event_show:
+    path: /event/{id}
+    controller: App\Controller\EventController::show
+
+default_event_register:
+    path: /event/{id}/register
+    controller: App\Controller\EventController::register
+
+default_event_unregister:
+    path: /event/{id}/unregister
+    controller: App\Controller\EventController::unregister
+
+# Routes admin
+default_admin_dashboard:
+    path: /admin/dashboard
+    controller: App\Controller\AdminController::dashboard
+
+default_admin_events:
+    path: /admin/events
+    controller: App\Controller\AdminController::events
+
+default_admin_categories:
+    path: /admin/categories
+    controller: App\Controller\AdminController::categories
+
+default_admin_event_participants:
+    path: /admin/event/{id}/participants
+    controller: App\Controller\AdminController::participants
+
+default_event_new:
+    path: /admin/event/new
+    controller: App\Controller\EventController::new
+
+default_event_edit:
+    path: /admin/event/{id}/edit
+    controller: App\Controller\EventController::edit
+
+default_event_delete:
+    path: /admin/event/{id}/delete
+    controller: App\Controller\EventController::delete
+    methods: [POST]
+
+# Routes d'authentification
+security_connexion:
+    path: /connexion
+    controller: App\Controller\SecurityController::login
+
+security_inscription:
+    path: /inscription
+    controller: App\Controller\SecurityController::register
+
+security_deconnexion:
+    path: /deconnexion
+    controller: App\Controller\SecurityController::logout
+
+# Alias
+default_login:
+    path: /login
+    controller: App\Controller\SecurityController::login
+
+default_register:
+    path: /register
+    controller: App\Controller\SecurityController::register
+
+default_logout:
+    path: /logout
+    controller: App\Controller\SecurityController::logout
+
+# Routes utilisateur
+default_my_registrations:
+    path: /my-registrations
+    controller: App\Controller\UserController::myRegistrations

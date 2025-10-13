@@ -1,0 +1,161 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Accueil - EventHub{% endblock %}
+
+{% block body %}
+    {# Hero Section #}
+    <div class="hero-section text-center py-5 mb-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="bi bi-calendar-event text-white"></i>
+                        Bienvenue sur EventHub
+                    </h1>
+                    <p class="lead mb-4">
+                        Découvrez, créez et participez aux meilleurs événements près de chez vous.
+                        Rejoignez une communauté passionnée et vivez des expériences inoubliables.
+                    </p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{{ path('default_home') }}" class="btn btn-light btn-lg">
+                            <i class="bi bi-search"></i> Explorer les événements
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Statistiques rapides #}
+    <div class="mb-5">
+        <div class="row g-4 text-center">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-4">
+                        <div class="display-4 text-primary mb-3">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h3 class="h4 fw-bold">{{ events|length }}</h3>
+                        <p class="text-muted mb-0">Événements disponibles</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-4">
+                        <div class="display-4 text-success mb-3">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <h3 class="h4 fw-bold">Bientôt</h3>
+                        <p class="text-muted mb-0">Participants actifs</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body py-4">
+                        <div class="display-4 text-info mb-3">
+                            <i class="bi bi-star-fill"></i>
+                        </div>
+                        <h3 class="h4 fw-bold">4.8/5</h3>
+                        <p class="text-muted mb-0">Note moyenne</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Événements à la une #}
+    {% if events is not empty %}
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="h3 fw-bold">
+                    <i class="bi bi-fire text-danger"></i> Événements à venir
+                </h2>
+            </div>
+
+            <div class="row g-4">
+                {% for event in events %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 border-0 shadow-sm">
+                            {% if event.image %}
+                                <img src="{{ asset('uploads/images/' ~ event.image) }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-gradient d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="bi bi-calendar-event text-white" style="font-size: 4rem;"></i>
+                                </div>
+                            {% endif %}
+
+                            <div class="card-body">
+                                <h5 class="card-title fw-bold mb-3">{{ event.title }}</h5>
+
+                                <div class="mb-3">
+                                    <p class="text-muted small mb-2">
+                                        <i class="bi bi-geo-alt text-primary"></i>
+                                        {{ event.city }}, {{ event.country }}
+                                    </p>
+                                    <p class="text-muted small mb-2">
+                                        <i class="bi bi-calendar3 text-primary"></i>
+                                        {{ event.dateStart|date('d/m/Y à H:i') }}
+                                    </p>
+                                    <p class="text-muted small mb-0">
+                                        <i class="bi bi-person text-primary"></i>
+                                        {{ event.organizer }}
+                                    </p>
+                                </div>
+
+                                <p class="card-text text-muted small">
+                                    {{ event.description|length > 120 ? event.description|slice(0, 120) ~ '...' : event.description }}
+                                </p>
+                            </div>
+
+                            <div class="card-footer bg-white border-0">
+                                <a href="#" class="btn btn-primary w-100">
+                                    Voir les détails <i class="bi bi-arrow-right"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% else %}
+        <div class="mb-5">
+            <div class="card border-0 shadow-sm text-center py-5">
+                <div class="card-body">
+                    <div class="display-1 text-muted mb-3">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">Aucun événement pour le moment</h3>
+                    <p class="text-muted mb-4">
+                        Revenez bientôt pour découvrir nos prochains événements !
+                    </p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Call to action #}
+    <div class="card border-0 shadow-sm text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="card-body text-center py-5">
+            <h2 class="h3 fw-bold mb-3">Prêt à commencer ?</h2>
+            <p class="lead mb-4">
+                Rejoignez EventHub dès aujourd'hui et découvrez tous nos événements
+            </p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                {% if app.user %}
+                    <a href="{{ path('app_home') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-calendar3"></i> Voir les événements
+                    </a>
+                {% else %}
+                    <a href="{{ path('security_inscription') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-person-plus"></i> S'inscrire gratuitement
+                    </a>
+                    <a href="{{ path('security_connexion') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Se connecter
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
