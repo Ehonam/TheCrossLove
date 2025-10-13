@@ -1,315 +1,419 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ event.name }}{% endblock %}
+{% block title %}{{ event.title }} - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-red);
+        }
+
+        .event-detail-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .event-main {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .event-hero-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .event-hero-content {
+            padding: 2rem;
+        }
+
+        .event-category-badge {
+            display: inline-block;
+            padding: 0.375rem 1rem;
+            background-color: var(--primary-red);
+            color: var(--white);
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .event-hero-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .event-organizer {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+        }
+
+        .event-section {
+            padding: 2rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .event-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+        }
+
+        .event-description-text {
+            line-height: 1.8;
+            color: var(--text-gray);
+        }
+
+        .event-info-items {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .info-item {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .info-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            fill: var(--text-gray);
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .info-value {
+            color: var(--text-dark);
+            font-weight: 500;
+        }
+
+        /* Sidebar */
+        .event-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-card {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .registration-status {
+            text-align: center;
+            padding: 1rem;
+            background-color: var(--bg-light);
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .registration-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-red);
+            margin-bottom: 0.25rem;
+        }
+
+        .registration-label {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .btn-register {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--border-gray);
+            background-color: var(--white);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .btn-action:hover {
+            background-color: var(--bg-light);
+            border-color: var(--primary-red);
+            color: var(--primary-red);
+        }
+
+        .organizer-card-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+
+        .organizer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .organizer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background-color: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-red);
+            font-weight: 600;
+        }
+
+        .organizer-details {
+            flex: 1;
+        }
+
+        .organizer-name {
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.125rem;
+        }
+
+        .organizer-role {
+            font-size: 0.813rem;
+            color: var(--text-gray);
+        }
+
+        .btn-contact-organizer {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-gray);
+            background-color: var(--white);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        .btn-contact-organizer:hover {
+            background-color: var(--bg-light);
+            border-color: var(--primary-red);
+        }
+
+        .expectations-section {
+            padding: 1.5rem;
+            background-color: var(--bg-light);
+            border-radius: 0.5rem;
+        }
+
+        .expectations-title {
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--text-dark);
+        }
+
+        .expectations-text {
+            font-size: 0.875rem;
+            line-height: 1.6;
+            color: var(--text-gray);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .event-detail-container {
+                grid-template-columns: 1fr;
+            }
+
+            .event-sidebar {
+                order: -1;
+            }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
-    <div class="event-detail-page">
-        <!-- Event Header -->
-        <section class="event-detail-header">
-            <div class="container">
-                <div class="breadcrumb animate-fade-in">
-                    <a href="{{ path('app_home') }}">
-                        <i class="fas fa-home"></i> Accueil
-                    </a>
-                    <span class="separator">/</span>
-                    <a href="{{ path('app_event_index') }}">Événements</a>
-                    <span class="separator">/</span>
-                    <span>{{ event.name }}</span>
-                </div>
-            </div>
-        </section>
+    <div class="container">
+        <a href="{{ path('default_home') }}" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Retour aux événements
+        </a>
 
-        <!-- Event Content -->
-        <section class="event-detail-content">
-            <div class="container">
-                <div class="event-detail-layout">
-                    <!-- Main Content -->
-                    <div class="event-detail-main">
-                        <!-- Event Image -->
-                        {% if event.image %}
-                            <div class="event-detail-image animate-fade-in">
-                                <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.name }}">
-                                {% if event.featured %}
-                                    <div class="event-badge-large">À la une</div>
-                                {% endif %}
+        <div class="event-detail-container">
+            <div class="event-main">
+                {% if event.imageUrl %}
+                    <img src="{{ event.imageUrl }}" alt="{{ event.title }}" class="event-hero-image">
+                {% else %}
+                    <div class="event-hero-image"></div>
+                {% endif %}
+
+                <div class="event-hero-content">
+                    <span class="event-category-badge">{{ event.category }}</span>
+                    <h1 class="event-hero-title">{{ event.title }}</h1>
+                    <p class="event-organizer">Organisé par {{ event.organizer }}</p>
+
+                    <div class="event-info-items">
+                        <div class="info-item">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/>
+                            </svg>
+                            <div class="info-content">
+                                <div class="info-label">Date</div>
+                                <div class="info-value">{{ event.startDate|date('l, d F Y', 'Europe/Paris') }}</div>
                             </div>
-                        {% else %}
-                            <div class="event-detail-image-default animate-fade-in">
-                                <i class="fas fa-calendar-alt"></i>
+                        </div>
+
+                        <div class="info-item">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>
+                            </svg>
+                            <div class="info-content">
+                                <div class="info-label">Heure</div>
+                                <div class="info-value">{{ event.startDate|date('H:i') }}</div>
                             </div>
-                        {% endif %}
+                        </div>
 
-                        <!-- Event Info -->
-                        <div class="event-detail-info animate-slide-up">
-                            <div class="event-category-badge">{{ event.category }}</div>
-                            <h1 class="event-detail-title">{{ event.name }}</h1>
-
-                            <!-- Event Meta -->
-                            <div class="event-detail-meta">
-                                <div class="meta-item">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    <div>
-                                        <strong>Date</strong>
-                                        <span>{{ event.startDate|date('d/m/Y') }}</span>
-                                    </div>
-                                </div>
-                                <div class="meta-item">
-                                    <i class="fas fa-clock"></i>
-                                    <div>
-                                        <strong>Horaire</strong>
-                                        <span>{{ event.startDate|date('H:i') }}{% if event.endDate %} - {{ event.endDate|date('H:i') }}{% endif %}</span>
-                                    </div>
-                                </div>
-                                <div class="meta-item">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <div>
-                                        <strong>Lieu</strong>
-                                        <span>{{ event.location }}</span>
-                                    </div>
-                                </div>
-                                <div class="meta-item">
-                                    <i class="fas fa-users"></i>
-                                    <div>
-                                        <strong>Places disponibles</strong>
-                                        <span>{{ event.availableSeats }} / {{ event.capacity }}</span>
-                                    </div>
+                        <div class="info-item">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                            </svg>
+                            <div class="info-content">
+                                <div class="info-label">Lieu</div>
+                                <div class="info-value">
+                                    {{ event.address }}<br>
+                                    {{ event.city }}, {{ event.postalCode }}<br>
+                                    {{ event.country }}
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Event Description -->
-                            <div class="event-detail-description">
-                                <h2><i class="fas fa-info-circle"></i> Description</h2>
-                                <p>{{ event.description }}</p>
-                            </div>
-
-                            <!-- Event Details -->
-                            {% if event.additionalInfo %}
-                                <div class="event-detail-additional">
-                                    <h2><i class="fas fa-list"></i> Informations complémentaires</h2>
-                                    <div class="additional-info">
-                                        {{ event.additionalInfo|raw }}
-                                    </div>
-                                </div>
-                            {% endif %}
-
-                            <!-- Event Organizer -->
-                            <div class="event-organizer">
-                                <h3><i class="fas fa-user-tie"></i> Organisateur</h3>
-                                <div class="organizer-info">
-                                    <div class="organizer-avatar">
-                                        <i class="fas fa-user-circle"></i>
-                                    </div>
-                                    <div>
-                                        <strong>{{ event.organizer ?? 'EventManager' }}</strong>
-                                        <span>Organisateur vérifié</span>
-                                    </div>
-                                </div>
+                        <div class="info-item">
+                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                            </svg>
+                            <div class="info-content">
+                                <div class="info-label">Capacité</div>
+                                <div class="info-value">{{ event.capacity }} participants</div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Sidebar -->
-                    <aside class="event-detail-sidebar">
-                        <!-- Registration Card -->
-                        <div class="registration-card sticky-card animate-slide-left">
-                            <div class="registration-price">
-                                {% if event.price > 0 %}
-                                    <span class="price-amount">{{ event.price }}€</span>
-                                    <span class="price-label">par personne</span>
-                                {% else %}
-                                    <span class="price-amount text-success">Gratuit</span>
-                                    <span class="price-label">Inscription libre</span>
-                                {% endif %}
-                            </div>
-
-                            {% if event.availableSeats > 0 %}
-                                <!-- Registration Form -->
-                                {% if app.user %}
-                                    {{ form_start(registration_form, {'attr': {'class': 'registration-form'}}) }}
-                                    <div class="form-group">
-                                        {{ form_row(registration_form.numberOfSeats, {
-                                            'label': 'Nombre de places',
-                                            'attr': {'class': 'form-control', 'max': event.availableSeats}
-                                        }) }}
-                                    </div>
-
-                                    {% if event.price > 0 %}
-                                        <div class="total-price">
-                                            <span>Total:</span>
-                                            <strong id="totalPrice">{{ event.price }}€</strong>
-                                        </div>
-                                    {% endif %}
-
-                                    <button type="submit" class="btn btn-primary btn-block btn-lg">
-                                        <i class="fas fa-ticket-alt"></i> S'inscrire maintenant
-                                    </button>
-
-                                    <div class="registration-info">
-                                        <i class="fas fa-check-circle"></i>
-                                        Confirmation immédiate par email
-                                    </div>
-                                    {{ form_end(registration_form) }}
-                                {% else %}
-                                    <a href="{{ path('app_login') }}" class="btn btn-primary btn-block btn-lg">
-                                        <i class="fas fa-sign-in-alt"></i> Connexion pour s'inscrire
-                                    </a>
-                                    <p class="text-center mt-3">
-                                        Pas encore de compte ?
-                                        <a href="{{ path('app_register') }}">Créer un compte</a>
-                                    </p>
-                                {% endif %}
-                            {% else %}
-                                <div class="event-full">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <strong>Événement complet</strong>
-                                    <p>Toutes les places ont été réservées</p>
-                                </div>
-                            {% endif %}
-
-                            <!-- Availability Bar -->
-                            <div class="availability-bar">
-                                {% set percentage = (event.registrations|length / event.capacity * 100) %}
-                                <div class="availability-progress">
-                                    <div class="progress-fill" style="width: {{ percentage }}%"></div>
-                                </div>
-                                <div class="availability-text">
-                                    {{ event.registrations|length }} inscrit(s) / {{ event.capacity }} places
-                                </div>
-                            </div>
-
-                            <!-- Share Buttons -->
-                            <div class="share-section">
-                                <p class="share-label">Partager cet événement</p>
-                                <div class="share-buttons">
-                                    <a href="#" class="share-btn facebook" onclick="shareOnFacebook(); return false;">
-                                        <i class="fab fa-facebook-f"></i>
-                                    </a>
-                                    <a href="#" class="share-btn twitter" onclick="shareOnTwitter(); return false;">
-                                        <i class="fab fa-twitter"></i>
-                                    </a>
-                                    <a href="#" class="share-btn linkedin" onclick="shareOnLinkedIn(); return false;">
-                                        <i class="fab fa-linkedin-in"></i>
-                                    </a>
-                                    <a href="#" class="share-btn email" onclick="shareByEmail(); return false;">
-                                        <i class="fas fa-envelope"></i>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Quick Info Card -->
-                        <div class="quick-info-card">
-                            <h3><i class="fas fa-info-circle"></i> Informations pratiques</h3>
-                            <ul class="quick-info-list">
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    Confirmation immédiate
-                                </li>
-                                <li>
-                                    <i class="fas fa-ticket-alt"></i>
-                                    Billet électronique
-                                </li>
-                                <li>
-                                    <i class="fas fa-undo"></i>
-                                    Annulation jusqu'à 24h avant
-                                </li>
-                                <li>
-                                    <i class="fas fa-shield-alt"></i>
-                                    Paiement sécurisé
-                                </li>
-                            </ul>
-                        </div>
-                    </aside>
                 </div>
-            </div>
-        </section>
 
-        <!-- Related Events -->
-        {% if related_events|length > 0 %}
-            <section class="related-events">
-                <div class="container">
-                    <h2 class="section-title animate-on-scroll">
-                        <i class="fas fa-calendar-week"></i> Événements similaires
-                    </h2>
-                    <div class="events-grid">
-                        {% for relatedEvent in related_events %}
-                            <div class="event-card animate-on-scroll" style="animation-delay: {{ loop.index * 0.1 }}s">
-                                {% if relatedEvent.image %}
-                                    <div class="event-image" style="background-image: url('{{ asset('uploads/events/' ~ relatedEvent.image) }}')"></div>
-                                {% else %}
-                                    <div class="event-image event-image-default">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </div>
-                                {% endif %}
-                                <div class="event-content">
-                                    <div class="event-category">{{ relatedEvent.category }}</div>
-                                    <h3 class="event-title">
-                                        <a href="{{ path('app_event_show', {id: relatedEvent.id}) }}">
-                                            {{ relatedEvent.name }}
-                                        </a>
-                                    </h3>
-                                    <div class="event-meta">
-                                        <div class="event-meta-item">
-                                            <i class="fas fa-calendar"></i>
-                                            {{ relatedEvent.startDate|date('d/m/Y') }}
-                                        </div>
-                                        <div class="event-meta-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            {{ relatedEvent.location }}
-                                        </div>
-                                    </div>
-                                    <div class="event-footer">
-                                        <div class="event-price">
-                                            {% if relatedEvent.price > 0 %}
-                                                {{ relatedEvent.price }}€
-                                            {% else %}
-                                                Gratuit
-                                            {% endif %}
-                                        </div>
-                                        <a href="{{ path('app_event_show', {id: relatedEvent.id}) }}" class="btn btn-sm btn-primary">
-                                            Voir détails
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        {% endfor %}
+                <div class="event-section">
+                    <h2 class="event-section-title">À propos de cet événement</h2>
+                    <div class="event-description-text">
+                        {{ event.description|nl2br }}
                     </div>
                 </div>
-            </section>
-        {% endif %}
+
+                <div class="event-section">
+                    <div class="expectations-section">
+                        <h3 class="expectations-title">À quoi s'attendre</h3>
+                        <p class="expectations-text">
+                            Cet événement promet d'être une expérience engageante avec des opportunités de réseautage,
+                            d'apprentissage et de plaisir. Venez prêt à rencontrer des personnes partageant les mêmes
+                            idées et à découvrir de nouvelles perspectives.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="event-sidebar">
+                <div class="sidebar-card">
+                    <div class="registration-status">
+                        <div class="registration-count">{{ event.registeredCount }}</div>
+                        <div class="registration-label">{{ event.capacity - event.registeredCount }} places restantes</div>
+                    </div>
+
+                    {% if app.user %}
+                        <button class="btn btn-primary btn-register">S'inscrire maintenant</button>
+                    {% else %}
+                        <a href="{{ path('default_login') }}" class="btn btn-primary btn-register">
+                            Connexion pour s'inscrire
+                        </a>
+                    {% endif %}
+
+                    <div class="action-buttons">
+                        <button class="btn-action">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                            </svg>
+                            Sauvegarder
+                        </button>
+                        <button class="btn-action">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                            </svg>
+                            Partager
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3 class="organizer-card-title">Organisateur</h3>
+                    <div class="organizer-info">
+                        <div class="organizer-avatar">
+                            {{ event.organizer|slice(0, 1)|upper }}
+                        </div>
+                        <div class="organizer-details">
+                            <div class="organizer-name">{{ event.organizer }}</div>
+                            <div class="organizer-role">Organisateur d'événement</div>
+                        </div>
+                    </div>
+                    <button class="btn-contact-organizer">Contacter l'organisateur</button>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <script>
-        // Update total price based on number of seats
-        document.addEventListener('DOMContentLoaded', function() {
-            const seatsInput = document.querySelector('input[name*="numberOfSeats"]');
-            const pricePerSeat = {{ event.price }};
-            const totalPriceElement = document.getElementById('totalPrice');
-
-            if (seatsInput && totalPriceElement) {
-                seatsInput.addEventListener('input', function() {
-                    const seats = parseInt(this.value) || 1;
-                    const total = seats * pricePerSeat;
-                    totalPriceElement.textContent = total.toFixed(2) + '€';
-                });
-            }
-        });
-
-        // Share functions
-        function shareOnFacebook() {
-            window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), 'facebook-share', 'width=580,height=296');
-        }
-
-        function shareOnTwitter() {
-            window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent('{{ event.name }}') + '&url=' + encodeURIComponent(window.location.href), 'twitter-share', 'width=550,height=235');
-        }
-
-        function shareOnLinkedIn() {
-            window.open('https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(window.location.href), 'linkedin-share', 'width=490,height=530');
-        }
-
-        function shareByEmail() {
-            window.location.href = 'mailto:?subject=' + encodeURIComponent('{{ event.name }}') + '&body=' + encodeURIComponent(window.location.href);
-        }
-    </script>
 {% endblock %}

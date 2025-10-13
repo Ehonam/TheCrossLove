@@ -1,0 +1,114 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>03-LE ROUTAGE DANS SF7</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="le-routage--symfony">Le Routage | Symfony</h1>
+<blockquote>
+<p>Doc de référence : <a href="https://symfony.com/doc/current/routing.html">https://symfony.com/doc/current/routing.html</a></p>
+</blockquote>
+<p>Suite à installation nous n’avons pour le moment aucune route de défini dans notre application. A nous de faire le nécessaire.<br>
+En réalité, symfony nous offres plusieurs possibilités selon nos préférences pour gérer les routes <em>(URL)</em> de notre application :</p>
+<blockquote>
+<p>Annotations, YAML, PHP et XML</p>
+</blockquote>
+<h2 id="le-yaml">Le YAML</h2>
+<p>YAML, est un langage simple qui décrit les données. Il permet de représenter des données structurées, comme le ferait XML par exemple, mais de manière plus naturelle et moins verbeuse. C’est à dire de manière aisément modifiable et  compréhensibles par un humain, quel que soit le langage de programmation".</p>
+<p>La plupart des fichiers de configuration dans symfony sont au format YAML.</p>
+<p>Rendez-vous sur :</p>
+<blockquote>
+<p>config / routes.yaml</p>
+</blockquote>
+<p>Nous allons retirer les commentaires et créer notre premier contrôleur.</p>
+<pre><code>home:
+    path: /
+    controller: App\Controller\DefaultController::home
+</code></pre>
+<p><em>Explication du fonctionnement des routes en YAML</em></p>
+<h2 id="création-de-defaultcontroller">Création de DefaultController</h2>
+<blockquote>
+<p>Doc de référence : <a href="https://symfony.com/doc/current/controller.html">https://symfony.com/doc/current/controller.html</a></p>
+</blockquote>
+<ol>
+<li>Créer une nouvelle classe 'DefaultController dans le dossier <code>src/Controller</code></li>
+</ol>
+<p><strong>Nous allons écrire ensemble notre première action :</strong></p>
+<pre><code>use Symfony\Component\HttpFoundation\Response;
+
+public function home() {
+    return new Response("&lt;html&gt;&lt;body&gt;&lt;h1&gt;PAGE D'ACCUEIL&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;");
+}
+</code></pre>
+<p>Actualisons maintenant notre page pour voir le résultat.<br>
+Testons maintenant dans notre console les commandes suivantes :</p>
+<blockquote>
+<p>php bin/console debug:router --env=prod<br>
+php bin/console debug:router</p>
+</blockquote>
+<ul>
+<li>Que pouvez-nous constater ?</li>
+<li>D’où proviennent les routes complémentaires ? A quoi servent-elles ?</li>
+</ul>
+<p><img src="https://github.com/biynmedia/Formation-Symfony/blob/master/LES-FONDAMENTAUX/captures/symfony_debug_console_dev.png?raw=true" alt="enter image description here"></p>
+<h2 id="les-attributs">Les Attributs</h2>
+<p>Dans symfony, pour plus de facilité, nous pouvons écrire nos routes avec des annotations.</p>
+<blockquote>
+<p>Doc de référence : <a href="https://symfony.com/doc/current/routing.html#creating-routes">https://symfony.com/doc/current/routing.html#creating-routes</a></p>
+</blockquote>
+<p>Nous pouvons maintenant écrire notre première route grâce aux attributs.<br>
+<strong>Par exemple pour afficher les articles d’une catégorie :</strong></p>
+<pre><code>/**
+  * Page permettant d'afficher les articles d'une catégorie
+  * ex. http://localhost:8000/politique
+  */
+#[Route('/{alias}', name: 'default_category', methods: ['GET'])]
+public function category($alias = 'politique') {
+    return new Response("&lt;html&gt;&lt;body&gt;&lt;h1&gt;PAGE CATEGORIE : $alias &lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;");
+}
+</code></pre>
+<p>Nous pouvons ensuite tester dans notre console, la détection de nos routes par Symfony :</p>
+<pre><code>php bin/console router:match /politique
+</code></pre>
+<p><img src="https://github.com/biynmedia/Formation-Symfony/blob/master/LES-FONDAMENTAUX/captures/symfony_debug_console_route.png?raw=true" alt="enter image description here"></p>
+<h4 id="mettons-à-jour-notre-fonction-home-avec-les-attributs-php">Mettons à jour notre fonction home avec les attributs PHP</h4>
+<h4 id="créons-notre-route-pour-afficher-les-articles.">Créons notre route pour afficher les articles.</h4>
+<h3 id="en-plus---les-contrôleurs-notable">En plus :  Les contrôleurs notable</h3>
+<p>Testons les deux contrôleurs suivants :</p>
+<h4 id="redirectcontroller">RedirectController</h4>
+<blockquote>
+<p>Doc de référence : <a href="https://symfony.com/doc/current/routing.html#redirecting-to-urls-and-routes-directly-from-a-route">https://symfony.com/doc/current/routing.html#redirecting-to-urls-and-routes-directly-from-a-route</a></p>
+</blockquote>
+<p>Ajoutons dans notre fichier routes.yaml le code suivant :</p>
+<pre><code>home_alt:
+    path: /accueil
+    controller: Symfony\Bundle\FrameworkBundle\Controller\RedirectController
+    defaults:
+        route: home
+        permanent: true
+</code></pre>
+<p>Grâce à <strong>redirectAction</strong> du <strong>RedirectController</strong>, je peux créer une redirection sans avoir dû créer un contrôleur personnalisé…</p>
+<h4 id="templatecontroller">TemplateController</h4>
+<blockquote>
+<p>Doc de référence : <a href="https://symfony.com/doc/current/templates.html#templates-render-from-route">https://symfony.com/doc/current/templates.html#templates-render-from-route</a></p>
+</blockquote>
+<p>Il se peut que dans certains cas, nous ayons besoin d’afficher une simple page, sans pour autant passer de paramètre. Nous pouvons alors grâce au TemplateController éviter la création d’un contrôleur dédié.</p>
+<pre><code>mentions_legales:
+    path:         /page/mentions-legales
+    controller:   Symfony\Bundle\FrameworkBundle\Controller\TemplateController
+    defaults:
+        template: static/mentions-legales.html.twig
+</code></pre>
+<h3 id="le-parcours-dune-requète">Le parcours d’une requète</h3>
+<p><img src="https://github.com/biynmedia/Formation-Symfony/blob/master/LES-FONDAMENTAUX/captures/request-flow.png?raw=true" alt="enter image description here"></p>
+<p>Written with ❤️ by <a href="https://github.com/hugoliegeard">Hugo LIEGEARD</a>.<br>
+Screenshots 📸 by <a href="https://tool.frogg.fr/">Frogg’s web tools</a>.</p>
+</div>
+</body>
+
+</html>

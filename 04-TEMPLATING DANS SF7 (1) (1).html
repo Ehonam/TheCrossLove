@@ -1,0 +1,238 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>04-TEMPLATING DANS SF7</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__html"><h1 id="le-templating--symfony-7">Le Templating | Symfony 7</h1>
+<p>Nous allons mettre en place le thème de notre projet ActuNews.<br>
+Mais avant cela, nous allons découvrir Twig.</p>
+<blockquote>
+<p>Doc de référence :<br>
+<a href="https://symfony.com/doc/current/templating.html">https://symfony.com/doc/current/templating.html</a><br>
+<a href="https://twig.symfony.com">https://twig.symfony.com</a></p>
+</blockquote>
+<h2 id="présentation-de-twig">Présentation de Twig</h2>
+<p>Les templates vont nous permettre de séparer le code PHP du code HTML/XML/Text, etc. Seulement, pour faire du HTML de présentation, on a toujours besoin d’un peu de code dynamique : faire une boucle pour afficher toutes les annonces de notre plateforme, créer des conditions pour afficher un menu différent pour les utilisateurs authentifiés ou non, etc. Pour faciliter ce code dynamique dans les templates, le moteur de templates Twig offre son pseudo-langage à lui.<br>
+<em>Source : Openclassroom.</em></p>
+<h2 id="mise-en-place-de-notre-thème">Mise en Place de notre Thème</h2>
+<p><strong>Nous allons maintenant procéder aux étapes suivantes :</strong></p>
+<ul>
+<li>Création de notre structure HTML de base : <strong>base.html.twig</strong> ;</li>
+<li>Hériter du <strong>Controller</strong> Symfony ;</li>
+<li>Rendu du template Twig de notre page d’Accueil.</li>
+</ul>
+<blockquote>
+<p>Doc de Référence<br>
+<a href="https://symfony.com/doc/current/controller.html#the-base-controller-classes-services">https://symfony.com/doc/current/controller.html#the-base-controller-classes-services</a> et <a href="https://symfony.com/doc/current/controller.html#rendering-templates">https://symfony.com/doc/current/controller.html#rendering-templates</a></p>
+</blockquote>
+<p>Créons tout d’abord notre fichier <code>templates/base.html.twig</code></p>
+<blockquote>
+<p>NOTA BENE : Ce fichier servira de support, de squelette à l’ensemble de nos autres pages.</p>
+</blockquote>
+<pre><code>&lt;!doctype html&gt;
+&lt;!--
+   _        _
+  /_\   ___| |_ _   _ _ __   _____      _____
+ //_\\ / __| __| | | | '_ \ / _ \ \ /\ / / __|
+/  _  \ (__| |_| |_| | | | |  __/\ V  V /\__ \
+\_/ \_/\___|\__|\__,_|_| |_|\___| \_/\_/ |___/
+--&gt;
+&lt;html lang="fr"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"&gt;
+    &lt;meta http-equiv="X-UA-Compatible" content="ie=edge"&gt;
+    &lt;title&gt;{% block title %}{% endblock %}&lt;/title&gt;
+    {% block stylesheets %}{% endblock %}
+&lt;/head&gt;
+&lt;body&gt;
+
+{# -- Nous mettrons contenu HTML ici -- #}
+{% block body %}{% endblock %}
+{% block javascripts %}{% endblock %}
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p>Dans ce fichier de base, nous utilisons un système de <code>{% block %}{% endblock %}</code>. Cette architecture nous permet de définir des emplacements dans lequel nous pourront venir plus tard positionner du code.</p>
+<p>Pour vous aider à comprendre, imaginer le parking d’une résidence avec avec des places numérotés et attribuées à chaque résident. Le soir après une dure journée de travail, le résident en rentrant chez lui regagne sa place de parking.</p>
+<p>C’est la même chose aussi, au moment de la compilation de votre template, le code HTML que vous aurez défini rejoindra la place de parking  <code>le block</code> qui lui correspond.</p>
+<blockquote>
+<p>Dans quelques instants vous allez voir le résultat ;-)</p>
+</blockquote>
+<p>Allez, mettons à jour notre controleur <code>src/Controller/DefaultController</code> :</p>
+<pre><code>use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+
+class DefaultController extends AbstractController
+
+public function home() {
+    return $this-&gt;render('base.html.twig');
+}
+</code></pre>
+<p>Rendez-vous sur la page : <a href="http://localhost:8000">http://localhost:8000</a> et observons le code source.</p>
+<p>Que constatez-vous ?</p>
+<p>Notre fichier de base est bien compilé !<br>
+Ce n’est que le début ! Allons plus loin 🤗</p>
+<h2 id="mise-en-place-de-notre-thème-1">Mise en Place de notre Thème</h2>
+<p>Nous allons mettre en place l’architecture nécessaire au fonctionnement de notre thème ActuNews en nous appuyant sur twig et bootstrap.</p>
+<p><strong>Tout d’abord, ajoutons dans notre fichier de base le CSS et le JS et bootstrap.</strong></p>
+<p>Mettons ensuite en place notre thème :</p>
+<ol>
+<li>Création du Menu <code>templates/components/_nav.html.twig</code></li>
+</ol>
+<p><em>Nous utiliserons la navbar de bootstrap :</em><br>
+<a href="https://getbootstrap.com/docs/5.3/components/navbar/#nav">https://getbootstrap.com/docs/5.3/components/navbar/#nav</a></p>
+<pre class=" language-html"><code class="prism  language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>nav</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbar navbar-expand-lg bg-body-tertiary<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>container-fluid<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbar-brand<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>{{ path(<span class="token punctuation">'</span>home<span class="token punctuation">'</span>) }}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>ActuNews<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>button</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbar-toggler<span class="token punctuation">"</span></span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>button<span class="token punctuation">"</span></span> <span class="token attr-name">data-bs-toggle</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>collapse<span class="token punctuation">"</span></span> <span class="token attr-name">data-bs-target</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>#navbarNav<span class="token punctuation">"</span></span> <span class="token attr-name">aria-controls</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbarNav<span class="token punctuation">"</span></span> <span class="token attr-name">aria-expanded</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>false<span class="token punctuation">"</span></span> <span class="token attr-name">aria-label</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>Toggle navigation<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>span</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbar-toggler-icon<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>span</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>button</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>div</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>collapse navbar-collapse<span class="token punctuation">"</span></span> <span class="token attr-name">id</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbarNav<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>ul</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>navbar-nav<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-item<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-link<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>{{ path(<span class="token punctuation">'</span>default_category<span class="token punctuation">'</span>, { <span class="token punctuation">'</span>alias<span class="token punctuation">'</span> : <span class="token punctuation">'</span>politique<span class="token punctuation">'</span> }) }}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Politique<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-item<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-link<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>{{ path(<span class="token punctuation">'</span>default_category<span class="token punctuation">'</span>, { <span class="token punctuation">'</span>alias<span class="token punctuation">'</span> : <span class="token punctuation">'</span>economie<span class="token punctuation">'</span> }) }}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Economie<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-item<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-link<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>{{ path(<span class="token punctuation">'</span>default_category<span class="token punctuation">'</span>, { <span class="token punctuation">'</span>alias<span class="token punctuation">'</span> : <span class="token punctuation">'</span>social<span class="token punctuation">'</span> }) }}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Social<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>li</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-item<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>
+          <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>a</span> <span class="token attr-name">class</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>nav-link<span class="token punctuation">"</span></span> <span class="token attr-name">href</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>{{ path(<span class="token punctuation">'</span>default_category<span class="token punctuation">'</span>, { <span class="token punctuation">'</span>alias<span class="token punctuation">'</span> : <span class="token punctuation">'</span>culture<span class="token punctuation">'</span> }) }}<span class="token punctuation">"</span></span><span class="token punctuation">&gt;</span></span>Culture<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>a</span><span class="token punctuation">&gt;</span></span>
+        <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>li</span><span class="token punctuation">&gt;</span></span>
+      <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>ul</span><span class="token punctuation">&gt;</span></span>
+    <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+  <span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>div</span><span class="token punctuation">&gt;</span></span>
+<span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>nav</span><span class="token punctuation">&gt;</span></span>
+</code></pre>
+<ol start="2">
+<li>Création du Footer <code>templates/components/_footer.html.twig</code></li>
+</ol>
+<p><em>Pour aller plus vite utilisez le code ci-dessous :</em></p>
+<pre><code>&lt;!-- Pied de page --&gt;
+&lt;footer class="mt-4 pt-4 "&gt;
+    &lt;div class="container border-top"&gt;
+        &lt;div class="row"&gt;
+            &lt;div class="col-12 col-md"&gt;
+                &lt;h5&gt;Actunews&lt;/h5&gt;
+                &lt;small class="d-block text-muted"&gt;&amp;copy; 2023 &lt;/small&gt;
+            &lt;/div&gt;
+            &lt;div class="col-6 col-md"&gt;
+                &lt;h5&gt;Catégories&lt;/h5&gt;
+                &lt;ul class="list-unstyled"&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Politique&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Economie&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Culture&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Loisirs&lt;/a&gt;&lt;/li&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+            &lt;div class="col-6 col-md"&gt;
+                &lt;ul class="list-unstyled"&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Contactez-nous&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Mentions légales&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Politique de confidentialité&lt;/a&gt;&lt;/li&gt;
+                    &lt;li&gt;&lt;a href="#" class="text-muted"&gt;Plan du site&lt;/a&gt;&lt;/li&gt;
+                &lt;/ul&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div class="container-fluid bg-dark"&gt;
+        &lt;div class="row"&gt;
+            &lt;div class="col"&gt;
+                &lt;p class="text-center text-white"&gt;&amp;copy; Actunews  2023 &lt;/p&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/footer&gt;
+&lt;!-- Fin -- Pied de page --&gt;
+</code></pre>
+<ol start="4">
+<li>Création de notre Vue Accueil <code>templates/default/index.html.twig</code></li>
+</ol>
+<p><strong>Et enfin notre page d’accueil :</strong></p>
+<pre><code>{% extends "base.html.twig" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block body %}
+&lt;main&gt;
+    &lt;!-- Titre de la page --&gt;
+    &lt;div class="p-3 mx-auto text-center"&gt;
+        &lt;h1 class="display-4"&gt;Actunews&lt;/h1&gt;
+    &lt;/div&gt;
+
+    &lt;!-- Contenu de la page --&gt;
+    &lt;!-- .py-5.bg-light&gt;.container&gt;.row&gt;.col-md-4*6&gt;.card.shadow-sm --&gt;
+    &lt;div class="py-5 bg-light"&gt;
+        &lt;div class="container"&gt;
+            &lt;div class="row"&gt;
+                &lt;div class="col"&gt;
+                    &lt;h3&gt;Page d'Exemple&lt;/h3&gt;
+                &lt;/div&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+&lt;/main&gt;
+{% endblock %}
+</code></pre>
+<p>Pour afficher les articles nous utiliserons les <code>cards</code> de bootstrap :<br>
+<a href="https://getbootstrap.com/docs/5.3/components/card/">https://getbootstrap.com/docs/5.3/components/card/</a></p>
+<pre><code>{# -- .py-5.bg-light&gt;.container&gt;.row&gt;.col-md-4.mt-4 -- #}
+    &lt;div class="py-5 bg-light"&gt;
+        &lt;div class="container"&gt;
+            &lt;div class="row"&gt;
+				&lt;div class="card" style="width: 18rem;"&gt;
+				  &lt;img src="https://via.placeholder.com/500" class="card-img-top" alt="..."&gt;
+				  &lt;div class="card-body"&gt;
+				    &lt;h5 class="card-title"&gt;Card title&lt;/h5&gt;
+				    &lt;p class="card-text"&gt;Some quick example text to build on the card title and make up the bulk of the card's content.&lt;/p&gt;
+				    &lt;a href="#" class="btn btn-primary"&gt;Lire la suite&lt;/a&gt;
+				  &lt;/div&gt;
+				&lt;/div&gt;
+            &lt;/div&gt; &lt;!-- /.row --&gt;
+        &lt;/div&gt; &lt;!-- /.container --&gt;
+    &lt;/div&gt; &lt;!-- /.bg-light --&gt;
+</code></pre>
+<p>Dupliquez la page accueil et créez le fichier <code>templates/default/category.html.twig</code></p>
+<p>Mettons à jour ensuite notre fonction <code>category</code> dans <code>DefaultController</code></p>
+<pre><code>public function category() {
+    return $this-&gt;render('default/category.html.twig');
+}
+</code></pre>
+<blockquote>
+<p>EXERCICE : Now is your turn, utilisez boostrap pour mettre en place la page Article.</p>
+</blockquote>
+<h3 id="génération-des-urls-">Génération des URLs :</h3>
+<blockquote>
+<p>Doc de Référence : <a href="https://symfony.com/doc/current/templating.html#linking-to-pages">https://symfony.com/doc/current/templating.html#linking-to-pages</a></p>
+</blockquote>
+<p>Nous allons maintenant mettre en place la navigation inter-pages de notre site.</p>
+<pre><code>&lt;a href="{{ path('default_index') }}"&gt;Accueil&lt;/a&gt;
+</code></pre>
+<p>Ici, la fonction <strong>path()</strong> va demander à Symfony de créer une URL pour la route <code>default_index</code>. Le résultat après compilation sera alors :</p>
+<pre><code>&lt;a href="/"&gt;Accueil&lt;/a&gt;
+</code></pre>
+<p>Lorsqu’il y à des paramètres, nous procédons de la façon suivantes :</p>
+<pre><code>&lt;a href="{{ path('default_category', { alias : 'politique' }) }}"&gt;Politique&lt;/a&gt;
+</code></pre>
+<p>Ce qui donnera :</p>
+<pre><code>&lt;a href="/politique"&gt;Politique&lt;/a&gt;
+</code></pre>
+<blockquote>
+<p>EXERCICE : A vous maintenant avec les liens article sur la page catégorie !</p>
+</blockquote>
+<hr>
+<p>Written with ❤️ by <a href="https://github.com/hugoliegeard">Hugo LIEGEARD</a>.</p>
+</div>
+</body>
+
+</html>

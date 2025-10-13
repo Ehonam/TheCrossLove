@@ -1,41 +1,400 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    {% include 'partials/header.html.twig' %}
-    {% block javascripts %}
-        {% block importmap %}{{ importmap('app') }}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EventHub{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    {% block stylesheets %}
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            :root {
+                --primary-red: #DC2626;
+                --primary-red-hover: #B91C1C;
+                --text-dark: #1F2937;
+                --text-gray: #6B7280;
+                --bg-light: #F9FAFB;
+                --bg-gray: #E5E7EB;
+                --border-gray: #D1D5DB;
+                --white: #FFFFFF;
+                --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+                --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+                --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.12);
+            }
+
+            body {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+                color: var(--text-dark);
+                background-color: var(--bg-light);
+                line-height: 1.6;
+            }
+
+            .container {
+                max-width: 1280px;
+                margin: 0 auto;
+                padding: 0 1.5rem;
+            }
+
+            /* Header Styles */
+            header {
+                background-color: var(--white);
+                border-bottom: 1px solid var(--border-gray);
+                padding: 1rem 0;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                box-shadow: var(--shadow-sm);
+            }
+
+            .header-content {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: var(--text-dark);
+                text-decoration: none;
+            }
+
+            .logo svg {
+                width: 32px;
+                height: 32px;
+                fill: var(--primary-red);
+            }
+
+            /* Navigation */
+            nav ul {
+                display: flex;
+                gap: 2rem;
+                list-style: none;
+                align-items: center;
+            }
+
+            nav a {
+                color: var(--text-dark);
+                text-decoration: none;
+                font-weight: 500;
+                transition: color 0.2s;
+            }
+
+            nav a:hover {
+                color: var(--primary-red);
+            }
+
+            nav a.active {
+                color: var(--primary-red);
+            }
+
+            /* Buttons */
+            .btn {
+                padding: 0.625rem 1.25rem;
+                border-radius: 0.5rem;
+                font-weight: 600;
+                font-size: 0.875rem;
+                text-decoration: none;
+                border: none;
+                cursor: pointer;
+                transition: all 0.2s;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .btn-primary {
+                background-color: var(--primary-red);
+                color: var(--white);
+            }
+
+            .btn-primary:hover {
+                background-color: var(--primary-red-hover);
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            }
+
+            .btn-secondary {
+                background-color: var(--white);
+                color: var(--text-dark);
+                border: 1px solid var(--border-gray);
+            }
+
+            .btn-secondary:hover {
+                background-color: var(--bg-light);
+            }
+
+            /* Main Content */
+            main {
+                min-height: calc(100vh - 200px);
+                padding: 2rem 0;
+            }
+
+            /* Footer */
+            footer {
+                background-color: var(--bg-gray);
+                padding: 2rem 0;
+                margin-top: 4rem;
+                text-align: center;
+                color: var(--text-gray);
+                font-size: 0.875rem;
+            }
+
+            /* Form Styles */
+            .form-group {
+                margin-bottom: 1.25rem;
+            }
+
+            .form-label {
+                display: block;
+                font-weight: 500;
+                margin-bottom: 0.5rem;
+                color: var(--text-dark);
+                font-size: 0.875rem;
+            }
+
+            .form-control {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                border: 1px solid var(--border-gray);
+                border-radius: 0.5rem;
+                font-size: 0.875rem;
+                transition: border-color 0.2s, box-shadow 0.2s;
+            }
+
+            .form-control:focus {
+                outline: none;
+                border-color: var(--primary-red);
+                box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+            }
+
+            /* Responsive */
+            /* Burger Menu */
+            .burger-menu {
+                display: none;
+                flex-direction: column;
+                gap: 5px;
+                cursor: pointer;
+                padding: 8px;
+                background: none;
+                border: none;
+                z-index: 101;
+            }
+
+            .burger-menu span {
+                width: 25px;
+                height: 3px;
+                background-color: var(--text-dark);
+                transition: all 0.3s ease;
+                border-radius: 3px;
+            }
+
+            .burger-menu.active span:nth-child(1) {
+                transform: rotate(45deg) translate(8px, 8px);
+            }
+
+            .burger-menu.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .burger-menu.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(7px, -7px);
+            }
+
+            /* Menu Overlay */
+            .menu-overlay {
+                display: none;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 99;
+                opacity: 0;
+                transition: opacity 0.3s ease;
+            }
+
+            .menu-overlay.active {
+                display: block;
+                opacity: 1;
+            }
+
+            /* Responsive */
+            @media (max-width: 768px) {
+                .burger-menu {
+                    display: flex;
+                }
+
+                nav {
+                    position: fixed;
+                    top: 65px;
+                    right: -100%;
+                    width: 280px;
+                    height: calc(100vh - 65px);
+                    background-color: var(--white);
+                    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+                    transition: right 0.3s ease;
+                    z-index: 100;
+                    padding: 2rem 0;
+                }
+
+                nav.active {
+                    right: 0;
+                }
+
+                nav ul {
+                    flex-direction: column;
+                    gap: 0;
+                    width: 100%;
+                }
+
+                nav ul li {
+                    width: 100%;
+                    border-bottom: 1px solid var(--border-gray);
+                }
+
+                nav ul li a {
+                    display: block;
+                    padding: 1rem 1.5rem;
+                    width: 100%;
+                }
+
+                nav ul li a:hover {
+                    background-color: var(--bg-light);
+                }
+
+                .container {
+                    padding: 0 1rem;
+                }
+
+                .logo {
+                    font-size: 1.1rem;
+                }
+
+            }
+        </style>
     {% endblock %}
 </head>
 <body>
-{# Navigation principale #}
-{% include 'partials/nav.html.twig' %}
+{% include 'partials/header.html.twig' %}
 
-{# Flash messages #}
-<div class="content-wrapper">
-    <div class="container">
-        {% for label, messages in app.flashes %}
-            {% for message in messages %}
-                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
-                    {% if label == 'success' %}
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                    {% elseif label == 'error' or label == 'danger' %}
-                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                    {% elseif label == 'warning' %}
-                        <i class="bi bi-exclamation-circle-fill me-2"></i>
-                    {% elseif label == 'info' %}
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                    {% endif %}
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endfor %}
+<main>
+    {% block body %}{% endblock %}
+</main>
 
-        {% block body %}{% endblock %}
-    </div>
-</div>
-
-{# Footer #}
 {% include 'partials/footer.html.twig' %}
+
+{% block javascripts %}
+    <script>
+
+        // Fonction globale pour toggle le menu
+        function toggleBurgerMenu(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            const burgerMenu = document.getElementById('burger-menu');
+            const nav = document.querySelector('nav');
+            const overlay = document.getElementById('menu-overlay');
+
+            console.log('Burger clicked via onclick!');
+
+            burgerMenu.classList.toggle('active');
+            nav.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            // Bloquer/débloquer le scroll
+            if (nav.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+
+            console.log('Burger active:', burgerMenu.classList.contains('active'));
+            console.log('Nav active:', nav.classList.contains('active'));
+            console.log('Overlay active:', overlay.classList.contains('active'));
+        }
+
+
+        // Menu Burger functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const burgerMenu = document.getElementById('burger-menu');
+            const nav = document.querySelector('nav');
+
+            if (!burgerMenu || !nav) {
+                console.error('❌ Elements not found');
+                return;
+            }
+
+            console.log('Burger menu initialized successfully');
+
+
+            // Close menu when clicking on a link
+            const navLinks = nav.querySelectorAll('a');
+            navLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    console.log('🔗 Link clicked, closing menu');
+                    const overlay = document.getElementById('menu-overlay');
+                    burgerMenu.classList.remove('active');
+                    nav.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+
+
+            // Close menu when clicking outside
+            document.addEventListener('click', function(event) {
+                const overlay = document.getElementById('menu-overlay');
+                const isClickInsideNav = nav.contains(event.target);
+                const isClickOnBurger = burgerMenu.contains(event.target);
+
+                if (!isClickInsideNav && !isClickOnBurger && nav.classList.contains('active')) {
+                    console.log('👆 Clicked outside, closing menu');
+                    burgerMenu.classList.remove('active');
+                    nav.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+
+
+
+            // Close menu on window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    const overlay = document.getElementById('menu-overlay');
+                    burgerMenu.classList.remove('active');
+                    nav.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+            // Close menu with Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && nav.classList.contains('active')) {
+                    console.log('⌨️ Escape pressed, closing menu');
+                    const overlay = document.getElementById('menu-overlay');
+                    burgerMenu.classList.remove('active');
+                    nav.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        });
+    </script>
+{% endblock %}
 </body>
 </html>

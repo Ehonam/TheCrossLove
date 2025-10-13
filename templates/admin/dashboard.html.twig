@@ -1,0 +1,439 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Administration - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .admin-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            margin-top: 0.25rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+            font-weight: 500;
+        }
+
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stat-icon.red {
+            background-color: #FEE2E2;
+        }
+
+        .stat-icon.green {
+            background-color: #D1FAE5;
+        }
+
+        .stat-icon.blue {
+            background-color: #DBEAFE;
+        }
+
+        .stat-icon.orange {
+            background-color: #FFEDD5;
+        }
+
+        .stat-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .stat-icon.red svg { fill: #DC2626; }
+        .stat-icon.green svg { fill: #059669; }
+        .stat-icon.blue svg { fill: #2563EB; }
+        .stat-icon.orange svg { fill: #EA580C; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-dark);
+        }
+
+        .events-table-section {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .table-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            padding: 0.625rem 1rem 0.625rem 2.5rem;
+            border: 1px solid var(--border-gray);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            width: 300px;
+        }
+
+        .search-box svg {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            fill: var(--text-gray);
+        }
+
+        .events-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .events-table thead {
+            background-color: var(--bg-light);
+        }
+
+        .events-table th {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-size: 0.813rem;
+            font-weight: 600;
+            color: var(--text-gray);
+            text-transform: uppercase;
+        }
+
+        .events-table td {
+            padding: 1rem;
+            border-top: 1px solid var(--border-gray);
+            font-size: 0.875rem;
+        }
+
+        .event-name {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .event-organizer {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-top: 0.125rem;
+        }
+
+        .event-date {
+            color: var(--text-dark);
+        }
+
+        .event-time {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-top: 0.125rem;
+        }
+
+        .status-badge {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-badge.active {
+            background-color: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .status-badge.full {
+            background-color: #FEE2E2;
+            color: #991B1B;
+        }
+
+        .status-badge.almost-full {
+            background-color: #FFEDD5;
+            color: #9A3412;
+        }
+
+        .registration-info {
+            color: var(--text-dark);
+        }
+
+        .registration-percentage {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-top: 0.125rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 32px;
+            height: 32px;
+            border: 1px solid var(--border-gray);
+            background-color: var(--white);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--bg-light);
+            border-color: var(--primary-red);
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: var(--text-gray);
+        }
+
+        .action-btn:hover svg {
+            fill: var(--primary-red);
+        }
+
+        .action-btn.delete:hover {
+            background-color: #FEE2E2;
+            border-color: #DC2626;
+        }
+
+        .action-btn.delete:hover svg {
+            fill: #DC2626;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .events-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="admin-header">
+            <div>
+                <h1 class="admin-title">Administration des Événements</h1>
+                <p class="admin-subtitle">Gérez tous les événements de la plateforme</p>
+            </div>
+            <a href="{{ path('event_new') }}" class="btn btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                Nouvel Événement
+            </a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Total Événements</span>
+                    <div class="stat-icon red">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">{{ stats.totalEvents ?? 6 }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Événements Actifs</span>
+                    <div class="stat-icon green">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">{{ stats.activeEvents ?? 0 }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Total Inscrits</span>
+                    <div class="stat-icon blue">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">{{ stats.totalRegistrations ?? 2719 }}</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <span class="stat-label">Taux de Remplissage</span>
+                    <div class="stat-icon orange">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="stat-value">{{ stats.fillRate ?? 65 }}%</div>
+            </div>
+        </div>
+
+        <div class="events-table-section">
+            <div class="table-header">
+                <h2 class="table-title">Liste des Événements</h2>
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    <input type="text" placeholder="Rechercher un événement..." id="table-search">
+                </div>
+            </div>
+
+            <table class="events-table">
+                <thead>
+                <tr>
+                    <th>Événement</th>
+                    <th>Date</th>
+                    <th>Lieu</th>
+                    <th>Catégorie</th>
+                    <th>Inscrits</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% if events is defined and events|length > 0 %}
+                    {% for event in events %}
+                        <tr>
+                            <td>
+                                <div class="event-name">{{ event.title }}</div>
+                                <div class="event-organizer">{{ event.organizer }}</div>
+                            </td>
+                            <td>
+                                <div class="event-date">{{ event.startDate|date('d/m/Y') }}</div>
+                                <div class="event-time">{{ event.startDate|date('H:i') }}</div>
+                            </td>
+                            <td>{{ event.city }}, {{ event.country }}</td>
+                            <td>{{ event.category }}</td>
+                            <td>
+                                <div class="registration-info">{{ event.registeredCount }}/{{ event.capacity }}</div>
+                                <div class="registration-percentage">{{ ((event.registeredCount / event.capacity) * 100)|round }}%</div>
+                            </td>
+                            <td>
+                                {% set fillRate = (event.registeredCount / event.capacity) * 100 %}
+                                {% if fillRate >= 100 %}
+                                    <span class="status-badge full">Complet</span>
+                                {% elseif fillRate >= 80 %}
+                                    <span class="status-badge almost-full">Presque complet</span>
+                                {% else %}
+                                    <span class="status-badge active">En cours</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="{{ path('event_show', {'id': event.id}) }}" class="action-btn" title="Voir">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+                                        </svg>
+                                    </a>
+                                    <a href="{{ path('event_edit', {'id': event.id}) }}" class="action-btn" title="Modifier">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                                        </svg>
+                                    </a>
+                                    <button class="action-btn delete" title="Supprimer" onclick="confirmDelete('{{ event.id }}')">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-gray);">
+                            Aucun événement trouvé
+                        </td>
+                    </tr>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        // Search functionality
+        document.getElementById('table-search').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.events-table tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        function confirmDelete(eventId) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
+                // In a real app, this would be an AJAX call
+                window.location.href = `/admin/event/${eventId}/delete`;
+            }
+        }
+    </script>
+{% endblock %}

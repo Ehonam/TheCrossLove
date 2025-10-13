@@ -13,8 +13,8 @@ class SecurityController extends AbstractController
     /**
      * Connexion d'un utilisateur
      */
-    #[Route('/connexion', name: 'security_connexion', methods: ['GET', 'POST'])]
-    public function connexion(AuthenticationUtils $authenticationUtils): Response
+    #[Route('/login', name: 'security_connexion', methods: ['GET', 'POST'])]
+    public function login(AuthenticationUtils $authenticationUtils): Response
     {
         // Récupération du message d'erreur s'il y en a un
         $error = $authenticationUtils->getLastAuthenticationError();
@@ -23,14 +23,14 @@ class SecurityController extends AbstractController
         $lastUsername = $authenticationUtils->getLastUsername();
 
         // Affichage du Formulaire
-        return $this->render('security/connexion.html.twig', [
+        return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error' => $error,
         ]);
     }
 
-    #[Route('/deconnexion', name: 'security_deconnexion')]
-    public function deconnexion(): void
+    #[Route('/logout', name: 'security_deconnexion')]
+    public function logout(): void
     {
         // Cette méthode peut rester vide - elle sera interceptée par la clé logout de votre firewall
     }

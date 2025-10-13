@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub - Templates Twig</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #1F2937;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 1rem;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: #DC2626;
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .header p {
+            opacity: 0.9;
+        }
+        .content {
+            padding: 2rem;
+        }
+        .section {
+            margin-bottom: 2rem;
+        }
+        .section h2 {
+            color: #DC2626;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #FEE2E2;
+        }
+        .file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .file-card {
+            padding: 1rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        .file-card:hover {
+            border-color: #DC2626;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+        }
+        .file-name {
+            font-weight: 600;
+            color: #DC2626;
+            margin-bottom: 0.25rem;
+        }
+        .file-desc {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+        .docs-list {
+            display: grid;
+            gap: 1rem;
+        }
+        .doc-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.5rem;
+            background: #F9FAFB;
+            border-radius: 0.5rem;
+            border: 1px solid #E5E7EB;
+        }
+        .doc-icon {
+            width: 48px;
+            height: 48px;
+            background: #DC2626;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.25rem;
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #DC2626;
+            color: white;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #B91C1C;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .stat {
+            text-align: center;
+            padding: 1rem;
+            background: #FEE2E2;
+            border-radius: 0.5rem;
+        }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #DC2626;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6B7280;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎉 EventHub Templates Twig</h1>
+        <p>Templates complets fidèles à la conception visuelle PDF</p>
+    </div>
+
+    <div class="content">
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number">12</div>
+                <div class="stat-label">Templates Twig</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">4</div>
+                <div class="stat-label">Docs</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Responsive</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number">✅</div>
+                <div class="stat-label">Prêt à l'emploi</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📚 Documentation</h2>
+            <div class="docs-list">
+                <div class="doc-card">
+                    <div class="doc-icon">📖</div>
+                    <div>
+                        <div class="file-name">README.md</div>
+                        <div class="file-desc">Guide complet d'utilisation et de configuration</div>
+                    </div>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">🛣️</div>
+                    <div>
+                        <div class="file-name">ROUTES.md</div>
+                        <div class="file-desc">Configuration des routes Symfony nécessaires</div>
+                    </div>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">🗂️</div>
+                    <div>
+                        <div class="file-name">ENTITIES.md</div>
+                        <div class="file-desc">Code complet des entités et formulaires</div>
+                    </div>
+                </div>
+                <div class="doc-card">
+                    <div class="doc-icon">📝</div>
+                    <div>
+                        <div class="file-name">SUMMARY.md</div>
+                        <div class="file-desc">Récapitulatif et checklist d'intégration</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📄 Templates Principaux</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <div class="file-name">base.html.twig</div>
+                    <div class="file-desc">Template de base avec design system complet</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">default/home.html.twig</div>
+                    <div class="file-desc">Page d'accueil avec grille d'événements et filtres</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">event/show.html.twig</div>
+                    <div class="file-desc">Page détails d'un événement avec sidebar</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">event/new.html.twig</div>
+                    <div class="file-desc">Formulaire création/édition d'événement</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">calendar/index.html.twig</div>
+                    <div class="file-desc">Calendrier interactif avec liste d'événements</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">admin/dashboard.html.twig</div>
+                    <div class="file-desc">Dashboard administrateur avec stats et table</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔐 Authentification</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <div class="file-name">to_register/connexion.html.twig</div>
+                    <div class="file-desc">Page de connexion avec comptes démo</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">to_register/to_register.html.twig</div>
+                    <div class="file-desc">Page d'inscription avec validation</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🧩 Composants Partiels</h2>
+            <div class="file-list">
+                <div class="file-card">
+                    <div class="file-name">partials/header.html.twig</div>
+                    <div class="file-desc">En-tête avec logo EventHub</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">partials/nav.html.twig</div>
+                    <div class="file-desc">Navigation dynamique avec rôles</div>
+                </div>
+                <div class="file-card">
+                    <div class="file-name">partials/footer.html.twig</div>
+                    <div class="file-desc">Pied de page simple</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section" style="text-align: center; padding: 2rem; background: #F9FAFB; border-radius: 0.5rem;">
+            <h2>🚀 Installation</h2>
+            <p style="margin: 1rem 0;">Utilisez le script d'installation automatique:</p>
+            <code style="background: white; padding: 0.5rem 1rem; border-radius: 0.25rem; display: inline-block;">
+                chmod +x install.sh && ./install.sh
+            </code>
+            <br>
+            <a href="SUMMARY.md" class="btn">📖 Voir la Checklist Complète</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+EOF
+cat index.html | head -20 && echo "... (fichier créé avec succès)"
+Sortie
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventHub - Templates Twig</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.6;
+            color: #1F2937;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;

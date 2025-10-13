@@ -1,185 +1,303 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}
-    {% if event.id %}Modifier{% else %}Créer{% endif %} un événement - EventHub
+{% block title %}{{ event.id ? 'Modifier' : 'Créer' }} un événement - EventHub{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-gray);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: var(--primary-red);
+        }
+
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .form-card {
+            background-color: var(--white);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-header {
+            margin-bottom: 2rem;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .form-subtitle {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+        }
+
+        .event-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+            font-size: 0.875rem;
+        }
+
+        .form-label.required::after {
+            content: ' *';
+            color: var(--primary-red);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-gray);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236B7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            padding-right: 2.5rem;
+        }
+
+        .form-help {
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            margin-top: 0.25rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-gray);
+        }
+
+        .btn-cancel {
+            flex: 1;
+        }
+
+        .btn-submit {
+            flex: 2;
+        }
+
+        /* Input groups for date/time */
+        .input-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .input-group .form-control {
+            flex: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column-reverse;
+            }
+        }
+    </style>
 {% endblock %}
 
 {% block body %}
-    {# Breadcrumb #}
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ path('default_home') }}">Accueil</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('default_admin_events') }}">Gestion événements</a></li>
-            <li class="breadcrumb-item active">
-                {% if event.id %}Modifier{% else %}Créer{% endif %} un événement
-            </li>
-        </ol>
-    </nav>
+    <div class="container">
+        <a href="{{ path('admin_dashboard') }}" class="back-link">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Retour aux événements
+        </a>
 
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm">
-                <div class="card-body p-4">
-                    <h1 class="h3 fw-bold mb-4">
-                        <i class="bi bi-calendar-plus text-primary"></i>
-                        {% if event.id %}
-                            Modifier l'événement
-                        {% else %}
-                            Créer un nouvel événement
-                        {% endif %}
-                    </h1>
-
-                    {{ form_start(form, {'attr': {'class': 'needs-validation', 'novalidate': 'novalidate'}}) }}
-
-                    {# Titre #}
-                    <div class="mb-3">
-                        {{ form_label(form.title, 'Titre de l\'événement', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                        {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Conférence Tech 2025'}}) }}
-                        {{ form_errors(form.title) }}
-                    </div>
-
-                    {# Description #}
-                    <div class="mb-3">
-                        {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                        {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': '5', 'placeholder': 'Décrivez votre événement...'}}) }}
-                        {{ form_errors(form.description) }}
-                        <small class="text-muted">Décrivez les points clés de votre événement</small>
-                    </div>
-
-                    {# Date et heure #}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form_label(form.dateStart, 'Date de début', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.dateStart, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.dateStart) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_label(form.dateEnd, 'Date de fin', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.dateEnd, {'attr': {'class': 'form-control'}}) }}
-                            {{ form_errors(form.dateEnd) }}
-                        </div>
-                    </div>
-
-                    {# Lieu #}
-                    <div class="mb-3">
-                        {{ form_label(form.location, 'Nom du lieu', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                        {{ form_widget(form.location, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Centre de conférences de Paris'}}) }}
-                        {{ form_errors(form.location) }}
-                    </div>
-
-                    {# Adresse #}
-                    <div class="row">
-                        <div class="col-md-8 mb-3">
-                            {{ form_label(form.address, 'Adresse', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.address, {'attr': {'class': 'form-control', 'placeholder': '123 rue de la Paix'}}) }}
-                            {{ form_errors(form.address) }}
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            {{ form_label(form.postalCode, 'Code postal', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.postalCode, {'attr': {'class': 'form-control', 'placeholder': '75001'}}) }}
-                            {{ form_errors(form.postalCode) }}
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form_label(form.city, 'Ville', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.city, {'attr': {'class': 'form-control', 'placeholder': 'Paris'}}) }}
-                            {{ form_errors(form.city) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_label(form.country, 'Pays', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.country, {'attr': {'class': 'form-control', 'placeholder': 'France'}}) }}
-                            {{ form_errors(form.country) }}
-                        </div>
-                    </div>
-
-                    {# Catégorie et capacité #}
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            {{ form_label(form.category, 'Catégorie', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.category, {'attr': {'class': 'form-select'}}) }}
-                            {{ form_errors(form.category) }}
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            {{ form_label(form.maxParticipants, 'Capacité maximale', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                            {{ form_widget(form.maxParticipants, {'attr': {'class': 'form-control', 'placeholder': '100', 'type': 'number', 'min': '1'}}) }}
-                            {{ form_errors(form.maxParticipants) }}
-                        </div>
-                    </div>
-
-                    {# Prix #}
-                    <div class="mb-3">
-                        {{ form_label(form.price, 'Prix (€)', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                        {{ form_widget(form.price, {'attr': {'class': 'form-control', 'placeholder': '0.00 (gratuit)', 'type': 'number', 'step': '0.01', 'min': '0'}}) }}
-                        {{ form_errors(form.price) }}
-                        <small class="text-muted">Laissez 0 pour un événement gratuit</small>
-                    </div>
-
-                    {# Organisateur #}
-                    <div class="mb-3">
-                        {{ form_label(form.organizer, 'Organisateur', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                        {{ form_widget(form.organizer, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom ou organisation'}}) }}
-                        {{ form_errors(form.organizer) }}
-                    </div>
-
-                    {# Image #}
-                    <div class="mb-4">
-                        {{ form_label(form.imageFile, 'Image de l\'événement', {'label_attr': {'class': 'form-label fw-semibold'}}) }}
-                        {{ form_widget(form.imageFile, {'attr': {'class': 'form-control'}}) }}
-                        {{ form_errors(form.imageFile) }}
-                        <small class="text-muted">Format recommandé : 1200x600px, JPEG ou PNG, max 2MB</small>
-
-                        {% if event.image %}
-                            <div class="mt-3">
-                                <img src="{{ asset('uploads/events/' ~ event.image) }}"
-                                     alt="Image actuelle"
-                                     class="img-thumbnail"
-                                     style="max-width: 300px;">
-                            </div>
-                        {% endif %}
-                    </div>
-
-                    {# Boutons d'action #}
-                    <div class="d-flex gap-2">
-                        <a href="{{ path('default_admin_events') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle"></i> Annuler
-                        </a>
-                        <button type="submit" class="btn btn-primary flex-grow-1">
-                            <i class="bi bi-check-circle"></i>
-                            {% if event.id %}
-                                Mettre à jour
-                            {% else %}
-                                Créer l'événement
-                            {% endif %}
-                        </button>
-                    </div>
-
-                    {{ form_end(form) }}
+        <div class="form-container">
+            <div class="form-card">
+                <div class="form-header">
+                    <h1 class="form-title">{{ event.id ? 'Modifier l\'événement' : 'Créer nouvel événement' }}</h1>
+                    <p class="form-subtitle">
+                        {{ event.id ? 'Modifiez les informations de votre événement' : 'Remplissez les informations pour créer un nouvel événement' }}
+                    </p>
                 </div>
+
+                {{ form_start(form, {'attr': {'class': 'event-form'}}) }}
+                <div class="form-group full-width">
+                    {{ form_label(form.title, 'Nom de l\'événement', {'label_attr': {'class': 'form-label required'}}) }}
+                    {{ form_widget(form.title, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Conférence Tech 2025'}}) }}
+                    {{ form_errors(form.title) }}
+                </div>
+
+                <div class="form-group full-width">
+                    {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label required'}}) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Décrivez votre événement...'}}) }}
+                    {{ form_errors(form.description) }}
+                    <p class="form-help">Fournissez une description détaillée de votre événement</p>
+                </div>
+
+                <div class="form-group full-width">
+                    {{ form_label(form.organizer, 'Organisateur', {'label_attr': {'class': 'form-label required'}}) }}
+                    {{ form_widget(form.organizer, {'attr': {'class': 'form-control', 'placeholder': 'Nom de l\'organisateur'}}) }}
+                    {{ form_errors(form.organizer) }}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.startDate, 'Date de début', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.startDate, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.startDate) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.endDate, 'Date de fin', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.endDate, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.endDate) }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.address, 'Adresse', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.address, {'attr': {'class': 'form-control', 'placeholder': '123 Rue Example'}}) }}
+                        {{ form_errors(form.address) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.postalCode, 'Code postal', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.postalCode, {'attr': {'class': 'form-control', 'placeholder': '75001'}}) }}
+                        {{ form_errors(form.postalCode) }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.city, 'Ville', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.city, {'attr': {'class': 'form-control', 'placeholder': 'Paris'}}) }}
+                        {{ form_errors(form.city) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.country, 'Pays', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.country, {'attr': {'class': 'form-control', 'placeholder': 'France'}}) }}
+                        {{ form_errors(form.country) }}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form_label(form.category, 'Catégorie', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.category, {'attr': {'class': 'form-control'}}) }}
+                        {{ form_errors(form.category) }}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form_label(form.capacity, 'Capacité', {'label_attr': {'class': 'form-label required'}}) }}
+                        {{ form_widget(form.capacity, {'attr': {'class': 'form-control', 'placeholder': '100', 'min': '1'}}) }}
+                        {{ form_errors(form.capacity) }}
+                        <p class="form-help">Nombre maximum de participants</p>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    {{ form_label(form.imageUrl, 'URL de l\'image', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(form.imageUrl, {'attr': {'class': 'form-control', 'placeholder': 'https://example.com/image.jpg'}}) }}
+                    {{ form_errors(form.imageUrl) }}
+                    <p class="form-help">Entrez une URL d'image ou cliquez sur l'icône pour télécharger un fichier</p>
+                </div>
+
+                <div class="form-actions">
+                    <a href="{{ path('admin_dashboard') }}" class="btn btn-secondary btn-cancel">
+                        Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary btn-submit">
+                        {{ event.id ? 'Enregistrer les modifications' : 'Créer l\'événement' }}
+                    </button>
+                </div>
+                {{ form_end(form) }}
             </div>
         </div>
     </div>
 {% endblock %}
 
-{% block extra_styles %}
-    <style>
-        .breadcrumb {
-            background: transparent;
-            padding: 0;
-        }
+{% block javascripts %}
+    {{ parent() }}
 
-        .breadcrumb-item + .breadcrumb-item::before {
-            color: var(--primary-color);
-        }
+    <script>
+        // Form validation
+        document.querySelector('.event-form').addEventListener('submit', function(e) {
+            const capacity = document.getElementById('event_capacity');
 
-        .breadcrumb-item a {
-            color: var(--primary-color);
-            text-decoration: none;
-        }
+            if (capacity && parseInt(capacity.value) < 1) {
+                e.preventDefault();
+                alert('La capacité doit être au moins de 1 participant');
+                capacity.focus();
+            }
+        });
 
-        .breadcrumb-item a:hover {
-            text-decoration: underline;
+        // Date validation
+        const startDate = document.getElementById('event_startDate');
+        const endDate = document.getElementById('event_endDate');
+
+        if (startDate && endDate) {
+            endDate.addEventListener('change', function() {
+                if (startDate.value && endDate.value) {
+                    if (new Date(endDate.value) < new Date(startDate.value)) {
+                        alert('La date de fin doit être après la date de début');
+                        endDate.value = startDate.value;
+                    }
+                }
+            });
         }
-    </style>
+    </script>
 {% endblock %}

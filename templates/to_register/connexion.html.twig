@@ -2,64 +2,231 @@
 
 {% block title %}Connexion - EventHub{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: calc(100vh - 300px);
+            padding: 2rem 0;
+        }
+
+        .auth-card {
+            background-color: var(--white);
+            border-radius: 1rem;
+            box-shadow: var(--shadow-lg);
+            padding: 3rem;
+            width: 100%;
+            max-width: 450px;
+        }
+
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 1.5rem;
+            background-color: #FEE2E2;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .auth-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: var(--primary-red);
+        }
+
+        .auth-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .auth-subtitle {
+            text-align: center;
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            margin-bottom: 2rem;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-gray);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .auth-tab.active {
+            color: var(--primary-red);
+            border-bottom-color: var(--primary-red);
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .demo-accounts {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: var(--bg-light);
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-gray);
+        }
+
+        .demo-accounts-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .demo-btn {
+            flex: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--border-gray);
+            background-color: var(--white);
+            border-radius: 0.375rem;
+            font-size: 0.813rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .demo-btn:hover {
+            background-color: var(--bg-light);
+            border-color: var(--primary-red);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+
+        .auth-footer a {
+            color: var(--primary-red);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
-    <div class="row justify-content-center py-5">
-        <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-header bg-danger text-white text-center">
-                    <h3 class="mb-0">
-                        <i class="bi bi-person-circle"></i> Connexion
-                    </h3>
-                    <p class="mb-0 small">Connectez-vous à votre compte EventHub</p>
+    <div class="container">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
                 </div>
 
-                <div class="card-body p-4">
-                    {# Affichage des erreurs #}
-                    {% if error %}
-                        <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                            {{ error.messageKey|trans(error.messageData, 'security')|replace({'Invalid credentials.' : 'Identifiant et/ou mot de passe incorrect.'}) }}
-                        </div>
-                    {% endif %}
+                <h1 class="auth-title">Connexion</h1>
+                <p class="auth-subtitle">Connectez-vous à votre compte EventHub</p>
 
-                    <form method="post">
-                        <div class="mb-3">
-                            <label for="inputEmail" class="form-label">Email</label>
-                            <input type="email"
-                                   value="{{ last_username }}"
-                                   name="_username"
-                                   id="inputEmail"
-                                   class="form-control"
-                                   placeholder="votre@email.com"
-                                   required
-                                   autofocus>
-                        </div>
+                {% if error %}
+                    <div style="padding: 1rem; background-color: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+                        <p style="color: #991B1B; font-size: 0.875rem;">{{ error.messageKey|trans(error.messageData, 'security') }}</p>
+                    </div>
+                {% endif %}
 
-                        <div class="mb-3">
-                            <label for="inputPassword" class="form-label">Mot de passe</label>
-                            <input type="password"
-                                   name="_password"
-                                   id="inputPassword"
-                                   class="form-control"
-                                   placeholder="••••••••"
-                                   required>
-                        </div>
+                <form method="post" class="auth-form">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Email</label>
+                        <input
+                            type="email"
+                            value="{{ last_username }}"
+                            name="_username"
+                            id="username"
+                            class="form-control"
+                            placeholder="votre@email.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
 
-                        <input type="hidden" name="_target_path" value="{{ path('default_home') }}">
+                    <div class="form-group">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <input
+                            type="password"
+                            name="_password"
+                            id="password"
+                            class="form-control"
+                            placeholder="••••••••"
+                            required
+                            autocomplete="current-password"
+                        >
+                    </div>
 
-                        <button class="btn btn-danger w-100 mb-3" type="submit">
-                            <i class="bi bi-box-arrow-in-right"></i> Se connecter
-                        </button>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
 
-                        <div class="text-center">
-                            <small class="text-muted">
-                                Pas encore de compte ?
-                                <a href="{{ path('security_inscription') }}" class="text-danger fw-bold">S'inscrire</a>
-                            </small>
-                        </div>
-                    </form>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.875rem; font-size: 1rem;">
+                        Se connecter
+                    </button>
+                </form>
+
+                <div class="demo-accounts">
+                    <div class="demo-accounts-title">Comptes de démonstration :</div>
+                    <div class="demo-buttons">
+                        <button class="demo-btn" onclick="fillDemo('admin')">Admin</button>
+                        <button class="demo-btn" onclick="fillDemo('user')">Utilisateur</button>
+                    </div>
+                </div>
+
+                <div class="auth-footer">
+                    Pas encore de compte ? <a href="{{ path('default_register') }}">S'inscrire</a>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        function fillDemo(type) {
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+
+            if (type === 'admin') {
+                usernameInput.value = 'admin@eventhub.com';
+                passwordInput.value = 'admin123';
+            } else {
+                usernameInput.value = 'user@eventhub.com';
+                passwordInput.value = 'user123';
+            }
+        }
+    </script>
 {% endblock %}
