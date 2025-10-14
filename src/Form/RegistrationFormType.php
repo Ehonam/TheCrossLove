@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Form;
 
 use App\Entity\User;
@@ -20,10 +19,16 @@ class RegistrationFormType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('fullName', TextType::class, [
-                'label' => 'Nom complet',
+            ->add('firstName', TextType::class, [
+                'label' => 'Prénom',
                 'constraints' => [
-                    new NotBlank(['message' => 'Le nom complet est requis']),
+                    new NotBlank(['message' => 'Le prénom est requis']),
+                ],
+            ])
+            ->add('lastName', TextType::class, [
+                'label' => 'Nom',
+                'constraints' => [
+                    new NotBlank(['message' => 'Le nom est requis']),
                 ],
             ])
             ->add('email', EmailType::class, [

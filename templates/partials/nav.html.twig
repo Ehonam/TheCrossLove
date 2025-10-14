@@ -1,7 +1,7 @@
 <nav>
     <ul>
         <li>
-            <a href="{{ path('default_home') }}" class="{{ app.request.attributes.get('_route') == 'app_home' ? 'active' : '' }}">
+            <a href="{{ path('default_home') }}" class="{{ app.request.attributes.get('_route') == 'default_home' ? 'active' : '' }}">
                 Événements
             </a>
         </li>
@@ -11,6 +11,14 @@
             </a>
         </li>
 
+        {% if app.user %}
+            <li>
+                <a href="{{ path('default_my_registrations') }}" class="{{ app.request.attributes.get('_route') == 'default_my_registrations' ? 'active' : '' }}">
+                    Mes inscriptions
+                </a>
+            </li>
+        {% endif %}
+
         {% if is_granted('ROLE_ADMIN') %}
             <li>
                 <a href="{{ path('admin_dashboard') }}" class="{{ app.request.attributes.get('_route') starts with 'admin_' ? 'active' : '' }}">
@@ -19,16 +27,31 @@
             </li>
         {% endif %}
 
-        <li>
-            {% if app.user %}
+        {% if app.user %}
+            <li style="display: flex; align-items: center; gap: 0.75rem;">
+                <span style="color: var(--text-gray); font-size: 0.875rem;">
+                    {{ app.user.firstName }} {{ app.user.lastName }}
+                    {% if is_granted('ROLE_ADMIN') %}
+                        <span style="color: var(--primary-red); font-weight: 600; margin-left: 0.5rem;">
+                            (Admin)
+                        </span>
+                    {% endif %}
+                </span>
                 <a href="{{ path('default_logout') }}" class="btn btn-secondary">
                     Déconnexion
                 </a>
-            {% else %}
+            </li>
+        {% else %}
+            <li>
                 <a href="{{ path('default_login') }}" class="btn btn-primary">
                     Connexion
                 </a>
-            {% endif %}
-        </li>
+            </li>
+            <li>
+                <a href="{{ path('default_register') }}" class="btn btn-outline-primary">
+                    S'inscrire
+                </a>
+            </li>
+        {% endif %}
     </ul>
 </nav>

@@ -1,419 +1,134 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}{{ event.title }} - EventHub{% endblock %}
-
-{% block stylesheets %}
-    {{ parent() }}
-    <style>
-        .back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-gray);
-            text-decoration: none;
-            margin-bottom: 2rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: var(--primary-red);
-        }
-
-        .event-detail-container {
-            display: grid;
-            grid-template-columns: 1fr 400px;
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .event-main {
-            background-color: var(--white);
-            border-radius: 0.75rem;
-            overflow: hidden;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .event-hero-image {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .event-hero-content {
-            padding: 2rem;
-        }
-
-        .event-category-badge {
-            display: inline-block;
-            padding: 0.375rem 1rem;
-            background-color: var(--primary-red);
-            color: var(--white);
-            border-radius: 0.375rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-        }
-
-        .event-hero-title {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
-            color: var(--text-dark);
-        }
-
-        .event-organizer {
-            font-size: 0.875rem;
-            color: var(--text-gray);
-            margin-bottom: 2rem;
-        }
-
-        .event-section {
-            padding: 2rem;
-            border-top: 1px solid var(--border-gray);
-        }
-
-        .event-section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: var(--text-dark);
-        }
-
-        .event-description-text {
-            line-height: 1.8;
-            color: var(--text-gray);
-        }
-
-        .event-info-items {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .info-item {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .info-icon {
-            width: 20px;
-            height: 20px;
-            flex-shrink: 0;
-            fill: var(--text-gray);
-        }
-
-        .info-content {
-            flex: 1;
-        }
-
-        .info-label {
-            font-size: 0.75rem;
-            color: var(--text-gray);
-            text-transform: uppercase;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-
-        .info-value {
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        /* Sidebar */
-        .event-sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
-        }
-
-        .sidebar-card {
-            background-color: var(--white);
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: var(--shadow-sm);
-        }
-
-        .registration-status {
-            text-align: center;
-            padding: 1rem;
-            background-color: var(--bg-light);
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .registration-count {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-red);
-            margin-bottom: 0.25rem;
-        }
-
-        .registration-label {
-            font-size: 0.875rem;
-            color: var(--text-gray);
-        }
-
-        .btn-register {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn-action {
-            flex: 1;
-            padding: 0.75rem;
-            border: 1px solid var(--border-gray);
-            background-color: var(--white);
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            font-weight: 500;
-            color: var(--text-dark);
-        }
-
-        .btn-action:hover {
-            background-color: var(--bg-light);
-            border-color: var(--primary-red);
-            color: var(--primary-red);
-        }
-
-        .organizer-card-title {
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-gray);
-            text-transform: uppercase;
-            margin-bottom: 1rem;
-        }
-
-        .organizer-info {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .organizer-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background-color: var(--bg-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--primary-red);
-            font-weight: 600;
-        }
-
-        .organizer-details {
-            flex: 1;
-        }
-
-        .organizer-name {
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 0.125rem;
-        }
-
-        .organizer-role {
-            font-size: 0.813rem;
-            color: var(--text-gray);
-        }
-
-        .btn-contact-organizer {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--border-gray);
-            background-color: var(--white);
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-weight: 500;
-            color: var(--text-dark);
-        }
-
-        .btn-contact-organizer:hover {
-            background-color: var(--bg-light);
-            border-color: var(--primary-red);
-        }
-
-        .expectations-section {
-            padding: 1.5rem;
-            background-color: var(--bg-light);
-            border-radius: 0.5rem;
-        }
-
-        .expectations-title {
-            font-weight: 600;
-            margin-bottom: 0.75rem;
-            color: var(--text-dark);
-        }
-
-        .expectations-text {
-            font-size: 0.875rem;
-            line-height: 1.6;
-            color: var(--text-gray);
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .event-detail-container {
-                grid-template-columns: 1fr;
-            }
-
-            .event-sidebar {
-                order: -1;
-            }
-        }
-    </style>
-{% endblock %}
+{% block title %}{{ event.title }}{% endblock %}
 
 {% block body %}
-    <div class="container">
-        <a href="{{ path('default_home') }}" class="back-link">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
-            </svg>
-            Retour aux événements
-        </a>
+    <div class="container mt-5">
+        <h1>{{ event.title }}</h1>
 
-        <div class="event-detail-container">
-            <div class="event-main">
-                {% if event.imageUrl %}
-                    <img src="{{ event.imageUrl }}" alt="{{ event.title }}" class="event-hero-image">
-                {% else %}
-                    <div class="event-hero-image"></div>
+        {# Afficher les messages flash #}
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+
+        <div class="row">
+            <div class="col-md-8">
+                {% if event.image %}
+                    <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.title }}" class="img-fluid mb-3">
                 {% endif %}
 
-                <div class="event-hero-content">
-                    <span class="event-category-badge">{{ event.category }}</span>
-                    <h1 class="event-hero-title">{{ event.title }}</h1>
-                    <p class="event-organizer">Organisé par {{ event.organizer }}</p>
+                <p>{{ event.description }}</p>
 
-                    <div class="event-info-items">
-                        <div class="info-item">
-                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/>
-                            </svg>
-                            <div class="info-content">
-                                <div class="info-label">Date</div>
-                                <div class="info-value">{{ event.startDate|date('l, d F Y', 'Europe/Paris') }}</div>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/>
-                            </svg>
-                            <div class="info-content">
-                                <div class="info-label">Heure</div>
-                                <div class="info-value">{{ event.startDate|date('H:i') }}</div>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                            </svg>
-                            <div class="info-content">
-                                <div class="info-label">Lieu</div>
-                                <div class="info-value">
-                                    {{ event.address }}<br>
-                                    {{ event.city }}, {{ event.postalCode }}<br>
-                                    {{ event.country }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="info-item">
-                            <svg class="info-icon" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                            </svg>
-                            <div class="info-content">
-                                <div class="info-label">Capacité</div>
-                                <div class="info-value">{{ event.capacity }} participants</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="event-section">
-                    <h2 class="event-section-title">À propos de cet événement</h2>
-                    <div class="event-description-text">
-                        {{ event.description|nl2br }}
-                    </div>
-                </div>
-
-                <div class="event-section">
-                    <div class="expectations-section">
-                        <h3 class="expectations-title">À quoi s'attendre</h3>
-                        <p class="expectations-text">
-                            Cet événement promet d'être une expérience engageante avec des opportunités de réseautage,
-                            d'apprentissage et de plaisir. Venez prêt à rencontrer des personnes partageant les mêmes
-                            idées et à découvrir de nouvelles perspectives.
-                        </p>
-                    </div>
-                </div>
+                <h4>Informations pratiques</h4>
+                <ul class="list-unstyled">
+                    <li><strong> Date de début :</strong> {{ event.dateStart|date('d/m/Y à H:i') }}</li>
+                    <li><strong> Date de fin :</strong> {{ event.dateEnd|date('d/m/Y à H:i') }}</li>
+                    <li><strong> Lieu :</strong> {{ event.fullAddress }}</li>
+                    <li><strong> Organisateur :</strong> {{ event.organizer }}</li>
+                    <li><strong> Places disponibles :</strong>
+                        {% if event.availableSeats is null %}
+                            Illimitées
+                        {% else %}
+                            {{ event.availableSeats }} / {{ event.maxParticipants }}
+                        {% endif %}
+                    </li>
+                    <li><strong> Statut :</strong>
+                        <span class="badge bg-{{ event.status == 'upcoming' ? 'success' : (event.status == 'full' ? 'warning' : 'secondary') }}">
+                        {{ event.statusLabel }}
+                    </span>
+                    </li>
+                </ul>
             </div>
 
-            <div class="event-sidebar">
-                <div class="sidebar-card">
-                    <div class="registration-status">
-                        <div class="registration-count">{{ event.registeredCount }}</div>
-                        <div class="registration-label">{{ event.capacity - event.registeredCount }} places restantes</div>
-                    </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Inscription</h5>
 
-                    {% if app.user %}
-                        <button class="btn btn-primary btn-register">S'inscrire maintenant</button>
-                    {% else %}
-                        <a href="{{ path('default_login') }}" class="btn btn-primary btn-register">
-                            Connexion pour s'inscrire
-                        </a>
-                    {% endif %}
-
-                    <div class="action-buttons">
-                        <button class="btn-action">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-                            </svg>
-                            Sauvegarder
-                        </button>
-                        <button class="btn-action">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
-                            </svg>
-                            Partager
-                        </button>
+                        {% if app.user %}
+                            {% if event.isUserRegistered(app.user) %}
+                                <div class="alert alert-info">
+                                     Vous êtes déjà inscrit à cet événement
+                                </div>
+                            {% elseif not event.canRegister %}
+                                <div class="alert alert-warning">
+                                    {% if event.isFull %}
+                                         Événement complet
+                                    {% elseif event.isPast %}
+                                         Événement terminé
+                                    {% else %}
+                                         Inscriptions closes
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                {# Utilisateur connecté : afficher le formulaire #}
+                                {{ form_start(registration_form) }}
+                                <p class="text-muted mb-3">
+                                    Vous vous inscrivez en tant que :<br>
+                                    <strong>{{ app.user.firstName }} {{ app.user.lastName }}</strong><br>
+                                    {{ app.user.email }}
+                                </p>
+                                <button type="submit" class="btn btn-primary w-100">
+                                    S'inscrire à cet événement
+                                </button>
+                                {{ form_end(registration_form) }}
+                            {% endif %}
+                        {% else %}
+                            {# Utilisateur non connecté : bouton de connexion #}
+                            <p class="text-muted">Vous devez être connecté pour vous inscrire.</p>
+                            <a href="{{ path('default_login') }}" class="btn btn-primary w-100">
+                                Se connecter
+                            </a>
+                            <a href="{{ path('default_register') }}" class="btn btn-outline-secondary w-100 mt-2">
+                                Créer un compte
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
 
-                <div class="sidebar-card">
-                    <h3 class="organizer-card-title">Organisateur</h3>
-                    <div class="organizer-info">
-                        <div class="organizer-avatar">
-                            {{ event.organizer|slice(0, 1)|upper }}
-                        </div>
-                        <div class="organizer-details">
-                            <div class="organizer-name">{{ event.organizer }}</div>
-                            <div class="organizer-role">Organisateur d'événement</div>
+                {% if event.category %}
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Catégorie</h6>
+                            <span class="badge bg-info">{{ event.category.name }}</span>
                         </div>
                     </div>
-                    <button class="btn-contact-organizer">Contacter l'organisateur</button>
-                </div>
+                {% endif %}
             </div>
         </div>
+
+        {# Événements similaires #}
+        {% if related_events|length > 0 %}
+            <h3 class="mt-5 mb-4">Événements similaires</h3>
+            <div class="row">
+                {% for relatedEvent in related_events %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            {% if relatedEvent.image %}
+                                <img src="{{ asset('uploads/events/' ~ relatedEvent.image) }}" class="card-img-top" alt="{{ relatedEvent.title }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h5 class="card-title">{{ relatedEvent.title }}</h5>
+                                <p class="card-text text-muted small">
+                                     {{ relatedEvent.dateStart|date('d/m/Y') }}<br>
+                                     {{ relatedEvent.city }}
+                                </p>
+                                <p class="card-text">{{ relatedEvent.description|slice(0, 100) }}...</p>
+                            </div>
+                            <div class="card-footer bg-transparent">
+                                <a href="{{ path('default_event_show', {'id': relatedEvent.id}) }}" class="btn btn-sm btn-outline-primary w-100">
+                                    Voir les détails
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 {% endblock %}

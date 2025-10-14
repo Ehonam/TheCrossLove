@@ -60,6 +60,32 @@
             gap: 1.25rem;
         }
 
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-label {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            padding: 0.75rem;
+            border: 1px solid var(--border-gray);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
         .checkbox-group {
             display: flex;
             align-items: start;
@@ -70,17 +96,17 @@
             margin-top: 0.25rem;
         }
 
-        .checkbox-group label {
+        .checkbox-label {
             font-size: 0.813rem;
             color: var(--text-gray);
         }
 
-        .checkbox-group a {
+        .checkbox-label a {
             color: var(--primary-red);
             text-decoration: none;
         }
 
-        .checkbox-group a:hover {
+        .checkbox-label a:hover {
             text-decoration: underline;
         }
 
@@ -100,6 +126,12 @@
         .auth-footer a:hover {
             text-decoration: underline;
         }
+
+        .form-error {
+            color: var(--primary-red);
+            font-size: 0.813rem;
+            margin-top: 0.25rem;
+        }
     </style>
 {% endblock %}
 
@@ -116,23 +148,40 @@
                 <h1 class="auth-title">Inscription</h1>
                 <p class="auth-subtitle">Créez votre compte EventHub pour commencer</p>
 
+                {# Afficher les messages flash #}
+                {% for label, messages in app.flashes %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ label }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
                 {{ form_start(registrationForm, {'attr': {'class': 'auth-form'}}) }}
+
                 <div class="form-group">
-                    {{ form_label(registrationForm.fullName, 'Nom complet', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(registrationForm.fullName, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom complet'}}) }}
-                    {{ form_errors(registrationForm.fullName) }}
+                    {{ form_label(registrationForm.firstName, 'Prénom', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(registrationForm.firstName, {'attr': {'class': 'form-control', 'placeholder': 'Votre prénom'}}) }}
+                    {{ form_errors(registrationForm.firstName) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(registrationForm.lastName, 'Nom', {'label_attr': {'class': 'form-label'}}) }}
+                    {{ form_widget(registrationForm.lastName, {'attr': {'class': 'form-control', 'placeholder': 'Votre nom'}}) }}
+                    {{ form_errors(registrationForm.lastName) }}
                 </div>
 
                 <div class="form-group">
                     {{ form_label(registrationForm.email, 'Email', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'votre@email.com'}}) }}
+                    {{ form_widget(registrationForm.email, {'attr': {'class': 'form-control', 'placeholder': 'votre@email.com', 'type': 'email'}}) }}
                     {{ form_errors(registrationForm.email) }}
                 </div>
 
                 <div class="form-group">
                     {{ form_label(registrationForm.plainPassword, 'Mot de passe', {'label_attr': {'class': 'form-label'}}) }}
-                    {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control', 'placeholder': '••••••••'}}) }}
+                    {{ form_widget(registrationForm.plainPassword, {'attr': {'class': 'form-control', 'placeholder': '••••••••', 'id': 'password_input'}}) }}
                     {{ form_errors(registrationForm.plainPassword) }}
+                    <small class="text-muted">Minimum 6 caractères</small>
                 </div>
 
                 <div class="form-group">
@@ -147,13 +196,17 @@
                 </div>
 
                 <div class="checkbox-group">
-                    {{ form_widget(registrationForm.agreeTerms) }}
-                    {{ form_label(registrationForm.agreeTerms, 'J\'accepte les <a href="#" onclick="return false;">conditions d\'utilisation</a> et la <a href="#" onclick="return false;">politique de confidentialité</a>'|raw, {'label_attr': {'class': 'checkbox-label'}}) }}
+                    {{ form_widget(registrationForm.agreeTerms, {'attr': {'id': 'agree_terms'}, 'label': false}) }}
+                    <label for="agree_terms" class="checkbox-label">
+                        J'accepte les <a href="#" onclick="return false;">conditions d'utilisation</a> et la <a href="#" onclick="return false;">politique de confidentialité</a>
+                    </label>
+                    {{ form_errors(registrationForm.agreeTerms) }}
                 </div>
 
                 <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.875rem; font-size: 1rem;">
                     Créer un compte
                 </button>
+
                 {{ form_end(registrationForm) }}
 
                 <div class="auth-footer">
@@ -166,17 +219,26 @@
 
 {% block javascripts %}
     {{ parent() }}
-
     <script>
-        // Password confirmation validation
-        const passwordInput = document.querySelector('input[type="password"]');
+        // Validation de confirmation de mot de passe
+        const form = document.querySelector('.auth-form');
+        const passwordInput = document.getElementById('password_input');
         const confirmInput = document.getElementById('password_confirm');
-        const form = document.querySelector('form');
 
         form.addEventListener('submit', function(e) {
             if (passwordInput.value !== confirmInput.value) {
                 e.preventDefault();
                 alert('Les mots de passe ne correspondent pas');
+                confirmInput.focus();
+            }
+        });
+
+        // Validation en temps réel
+        confirmInput.addEventListener('input', function() {
+            if (this.value && passwordInput.value !== this.value) {
+                this.style.borderColor = 'var(--primary-red)';
+            } else {
+                this.style.borderColor = 'var(--border-gray)';
             }
         });
     </script>

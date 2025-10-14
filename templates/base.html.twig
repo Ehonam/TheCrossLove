@@ -309,8 +309,6 @@
             const nav = document.querySelector('nav');
             const overlay = document.getElementById('menu-overlay');
 
-            console.log('Burger clicked via onclick!');
-
             burgerMenu.classList.toggle('active');
             nav.classList.toggle('active');
             overlay.classList.toggle('active');
@@ -321,10 +319,6 @@
             } else {
                 document.body.style.overflow = '';
             }
-
-            console.log('Burger active:', burgerMenu.classList.contains('active'));
-            console.log('Nav active:', nav.classList.contains('active'));
-            console.log('Overlay active:', overlay.classList.contains('active'));
         }
 
 
@@ -334,18 +328,13 @@
             const nav = document.querySelector('nav');
 
             if (!burgerMenu || !nav) {
-                console.error('❌ Elements not found');
                 return;
             }
-
-            console.log('Burger menu initialized successfully');
-
 
             // Close menu when clicking on a link
             const navLinks = nav.querySelectorAll('a');
             navLinks.forEach(link => {
                 link.addEventListener('click', function() {
-                    console.log('🔗 Link clicked, closing menu');
                     const overlay = document.getElementById('menu-overlay');
                     burgerMenu.classList.remove('active');
                     nav.classList.remove('active');
@@ -354,7 +343,6 @@
                 });
             });
 
-
             // Close menu when clicking outside
             document.addEventListener('click', function(event) {
                 const overlay = document.getElementById('menu-overlay');
@@ -362,15 +350,12 @@
                 const isClickOnBurger = burgerMenu.contains(event.target);
 
                 if (!isClickInsideNav && !isClickOnBurger && nav.classList.contains('active')) {
-                    console.log('👆 Clicked outside, closing menu');
                     burgerMenu.classList.remove('active');
                     nav.classList.remove('active');
                     overlay.classList.remove('active');
                     document.body.style.overflow = '';
                 }
             });
-
-
 
             // Close menu on window resize
             window.addEventListener('resize', function() {
@@ -382,10 +367,10 @@
                     document.body.style.overflow = '';
                 }
             });
+
             // Close menu with Escape key
             document.addEventListener('keydown', function(event) {
                 if (event.key === 'Escape' && nav.classList.contains('active')) {
-                    console.log('⌨️ Escape pressed, closing menu');
                     const overlay = document.getElementById('menu-overlay');
                     burgerMenu.classList.remove('active');
                     nav.classList.remove('active');

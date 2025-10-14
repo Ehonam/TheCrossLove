@@ -3,8 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Event;
-use App\Entity\Registration;
-use App\Form\RegistrationFormType;
+use App\Entity\ToRegister;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -41,22 +40,46 @@ class EventController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}', name: 'app_event_show', methods: ['GET', 'POST'])]
+    #[Route('/{id}', name: 'default_event_show', methods: ['GET', 'POST'])]
     public function show(Request $request, Event $event, EntityManagerInterface $entityManager): Response
     {
-        $registration = new Registration();
-        $registration->setEvent($event);
+        // Vérifier si l'utilisateur est connecté
+        if (!$this->getUser()) {
+            $this->addFlash('warning', 'Vous devez vous connecter pour vous inscrire à cet événement.');
 
-        if ($this->getUser()) {
-            $registration->setUser($this->getUser());
+            // Récupérer les événements similaires pour les afficher quand même
+            $relatedEvents = $event->getCategory()
+                ? $entityManager->getRepository(Event::class)->findBy(
+                    ['category' => $event->getCategory()],
+                    ['dateStart' => 'ASC'],
+                    4
+                )
+                : [];
+
+            $relatedEvents = array_filter($relatedEvents, fn($e) => $e->getId() !== $event->getId());
+            $relatedEvents = array_slice($relatedEvents, 0, 3);
+
+            return $this->render('event/show.html.twig', [
+                'event' => $event,
+                'registration_form' => null,
+                'related_events' => $relatedEvents,
+            ]);
         }
 
-        $form = $this->createForm(RegistrationFormType::class, $registration);
+        // Créer l'inscription
+        $toRegister = new ToRegister();
+        $toRegister->setEvent($event);
+        $toRegister->setUser($this->getUser());
+
+        // Formulaire simple (juste un bouton submit)
+        $form = $this->createFormBuilder($toRegister)
+            ->getForm();
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             if ($event->getAvailableSeats() > 0) {
-                $entityManager->persist($registration);
+                $entityManager->persist($toRegister);
                 $entityManager->flush();
 
                 $this->addFlash('success', 'Inscription réussie ! Un email de confirmation vous a été envoyé.');
@@ -66,9 +89,17 @@ class EventController extends AbstractController
             }
         }
 
+        // Récupérer les événements similaires
         $relatedEvents = $event->getCategory()
-            ? $entityManager->getRepository(Event::class)->findByCategory($event->getCategory(), 3, $event->getId())
+            ? $entityManager->getRepository(Event::class)->findBy(
+                ['category' => $event->getCategory()],
+                ['dateStart' => 'ASC'],
+                4
+            )
             : [];
+
+        $relatedEvents = array_filter($relatedEvents, fn($e) => $e->getId() !== $event->getId());
+        $relatedEvents = array_slice($relatedEvents, 0, 3);
 
         return $this->render('event/show.html.twig', [
             'event' => $event,
@@ -77,7 +108,7 @@ class EventController extends AbstractController
         ]);
     }
 
-    #[Route('/category/{category}', name: 'app_event_category', methods: ['GET'])]
+    #[Route('/category/{category}', name: 'default_event_category', methods: ['GET'])]
     public function category(string $category, EventRepository $eventRepository): Response
     {
         $events = $eventRepository->findByCategory($category);

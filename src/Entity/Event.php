@@ -371,6 +371,19 @@ class Event
     }
 
     /**
+     * Retourne le nombre de places disponibles
+     * @return int|null null si places illimitées
+     */
+    public function getAvailableSeats(): ?int
+    {
+        if ($this->maxParticipants === null) {
+            return null; // Places illimitées
+        }
+
+        return $this->maxParticipants - $this->getParticipantCount();
+    }
+
+    /**
      * Vérifie si l'événement est complet
      */
     public function isFull(): bool

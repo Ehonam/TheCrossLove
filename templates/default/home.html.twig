@@ -217,9 +217,10 @@
         <div class="events-grid" id="events-grid">
             {% if events is defined and events|length > 0 %}
                 {% for event in events %}
-                    <a href="{{ path('event_show', {'id': event.id}) }}" style="text-decoration: none; color: inherit;">
+                    <a href="{{ path('default_event_show', {'id': event.id}) }}" style="text-decoration: none; color: inherit;">
                         <div class="event-card" data-category="{{ event.category }}">
-                            {% if event.imageUrl %}\n                            <img src="{{ event.imageUrl }}" alt="{{ event.title }}" class="event-image">
+                            {% if event.image %}
+                                <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.title }}" class="event-image">
                             {% else %}
                                 <div class="event-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
                             {% endif %}
@@ -234,7 +235,7 @@
                                         <svg class="event-meta-icon" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/>
                                         </svg>
-                                        {{ event.startDate|date('d/m/Y H:i') }}
+                                        {{ event.dateStart|date('d/m/Y H:i') }}
                                     </div>
                                     <div class="event-meta-item">
                                         <svg class="event-meta-icon" viewBox="0 0 24 24" fill="currentColor">

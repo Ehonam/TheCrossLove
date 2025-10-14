@@ -1,0 +1,185 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Participants - {{ event.title }} - Admin{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, var(--primary-red) 0%, #a51c30 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .admin-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .event-info-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .participant-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-red) 0%, #a51c30 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+
+        .registration-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.813rem;
+            font-weight: 600;
+        }
+
+        .status-confirmed { background-color: #d1fae5; color: #065f46; }
+        .status-waiting { background-color: #fed7aa; color: #92400e; }
+        .status-cancelled { background-color: #fee2e2; color: #991b1b; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-red);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="admin-header">
+        <div class="container">
+            <h1 class="admin-title">Participants - {{ event.title }}</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        {# Statistiques #}
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">{{ registrations|length }}</div>
+                <div class="stat-label">Total inscriptions</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    {% if event.maxParticipants %}
+                        {{ event.availableSeats }}
+                    {% else %}
+                        ∞
+                    {% endif %}
+                </div>
+                <div class="stat-label">Places disponibles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">
+                    {% if event.maxParticipants %}
+                        {{ ((event.participantCount / event.maxParticipants) * 100)|round }}%
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+                <div class="stat-label">Taux de remplissage</div>
+            </div>
+        </div>
+
+        {# Informations de l'événement #}
+        <div class="event-info-card">
+            <h3>Informations de l'événement</h3>
+            <p class="mb-1"><strong>Date :</strong> {{ event.dateStart|date('d/m/Y à H:i') }}</p>
+            <p class="mb-1"><strong>Lieu :</strong> {{ event.fullAddress }}</p>
+            <p class="mb-0"><strong>Organisateur :</strong> {{ event.organizer }}</p>
+        </div>
+
+        {# Liste des participants #}
+        <h2 class="mb-3">Liste des participants</h2>
+
+        {% if registrations|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Participant</th>
+                            <th>Email</th>
+                            <th>Date d'inscription</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for registration in registrations %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="participant-avatar">
+                                            {{ registration.user.firstName|slice(0,1)|upper }}{{ registration.user.lastName|slice(0,1)|upper }}
+                                        </div>
+                                        <div>
+                                            <strong>{{ registration.user.firstName }} {{ registration.user.lastName }}</strong>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ registration.user.email }}</td>
+                                <td>{{ registration.registeredAt|date('d/m/Y à H:i') }}</td>
+                                <td>
+                                    <span class="registration-status status-{{ registration.status }}">
+                                        {{ registration.statusLabel }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {# Bouton d'export (optionnel) #}
+            <div class="mt-4 text-center">
+                <button class="btn btn-outline-secondary" onclick="window.print()">
+                    Imprimer la liste
+                </button>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <p class="mb-0">Aucun participant inscrit pour le moment.</p>
+            </div>
+        {% endif %}
+
+        <div class="mt-4">
+            <a href="{{ path('admin_events') }}" class="btn btn-outline-secondary">
+                ← Retour à la liste des événements
+            </a>
+        </div>
+    </div>
+{% endblock %}

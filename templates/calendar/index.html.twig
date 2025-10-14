@@ -60,7 +60,12 @@
             grid-template-columns: repeat(7, 1fr);
             gap: 0.5rem;
         }
-
+        .calendar-days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
         .calendar-weekday {
             text-align: center;
             font-size: 0.75rem;
@@ -257,9 +262,9 @@
                     <div class="calendar-weekday">Jeu</div>
                     <div class="calendar-weekday">Ven</div>
                     <div class="calendar-weekday">Sam</div>
-
-                    <div id="calendar-days"></div>
                 </div>
+
+                <div class="calendar-days-grid" id="calendar-days"></div>
 
                 <div class="calendar-summary" id="calendar-summary">
                     0 événements ce mois
@@ -271,18 +276,21 @@
                     <h2 class="events-list-title">Liste événements de la date sélectionnée</h2>
                     <div class="selected-date" id="selected-date">Vendredi, 3 Octobre 2025</div>
                 </div>
-
                 <div class="events-list" id="events-list">
                     {% if events is defined and events|length > 0 %}
                         {% for event in events %}
-                            <a href="{{ path('event_show', {'id': event.id}) }}" style="text-decoration: none; color: inherit;">
-                                <div class="event-item" data-date="{{ event.startDate|date('Y-m-d') }}">
+                            <a href="{{ path('default_event_show', {'id': event.id}) }}" style="text-decoration: none; color: inherit;">
+                                <div class="event-item" data-date="{{ event.dateStart|date('Y-m-d') }}">
                                     <div class="event-item-header">
                                         <div>
                                             <div class="event-item-title">{{ event.title }}</div>
-                                            <div class="event-item-time">{{ event.startDate|date('H:i') }}</div>
+                                            <div class="event-item-time">{{ event.dateStart|date('H:i') }}</div>
                                         </div>
-                                        <span class="event-item-category">{{ event.category }}</span>
+                                        {% if event.category %}
+                                            <span class="event-item-category">{{ event.category.name }}</span>
+                                        {% else %}
+                                            <span class="event-item-category">Non catégorisé</span>
+                                        {% endif %}
                                     </div>
                                     <div class="event-item-location">
                                         <svg viewBox="0 0 24 24" fill="currentColor">

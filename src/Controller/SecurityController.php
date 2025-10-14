@@ -13,9 +13,14 @@ class SecurityController extends AbstractController
     /**
      * Connexion d'un utilisateur
      */
-    #[Route('/login', name: 'security_connexion', methods: ['GET', 'POST'])]
+    #[Route('/login', name: 'default_login', methods: ['GET', 'POST'])]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
+        // Rediriger si déjà connecté
+        if ($this->getUser()) {
+            return $this->redirectToRoute('default_home');
+        }
+
         // Récupération du message d'erreur s'il y en a un
         $error = $authenticationUtils->getLastAuthenticationError();
 
@@ -29,7 +34,7 @@ class SecurityController extends AbstractController
         ]);
     }
 
-    #[Route('/logout', name: 'security_deconnexion')]
+    #[Route('/logout', name: 'default_logout')]
     public function logout(): void
     {
         // Cette méthode peut rester vide - elle sera interceptée par la clé logout de votre firewall

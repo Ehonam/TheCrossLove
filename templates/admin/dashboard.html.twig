@@ -271,7 +271,7 @@
                 <h1 class="admin-title">Administration des Événements</h1>
                 <p class="admin-subtitle">Gérez tous les événements de la plateforme</p>
             </div>
-            <a href="{{ path('event_new') }}" class="btn btn-primary">
+            <a href="{{ path('admin_event_new') }}" class="btn btn-primary">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
@@ -361,33 +361,57 @@
                                 <div class="event-organizer">{{ event.organizer }}</div>
                             </td>
                             <td>
-                                <div class="event-date">{{ event.startDate|date('d/m/Y') }}</div>
-                                <div class="event-time">{{ event.startDate|date('H:i') }}</div>
+                                <div class="event-date">{{ event.dateStart|date('d/m/Y') }}</div>
+                                <div class="event-time">{{ event.dateStart|date('H:i') }}</div>
                             </td>
                             <td>{{ event.city }}, {{ event.country }}</td>
-                            <td>{{ event.category }}</td>
                             <td>
-                                <div class="registration-info">{{ event.registeredCount }}/{{ event.capacity }}</div>
-                                <div class="registration-percentage">{{ ((event.registeredCount / event.capacity) * 100)|round }}%</div>
+                                {% if event.category %}
+                                    {{ event.category.name }}
+                                {% else %}
+                                    <em class="text-muted">Sans catégorie</em>
+                                {% endif %}
                             </td>
                             <td>
-                                {% set fillRate = (event.registeredCount / event.capacity) * 100 %}
-                                {% if fillRate >= 100 %}
-                                    <span class="status-badge full">Complet</span>
-                                {% elseif fillRate >= 80 %}
-                                    <span class="status-badge almost-full">Presque complet</span>
+                                <div class="registration-info">
+                                    {{ event.participantCount }}
+                                    {% if event.maxParticipants %}
+                                        /{{ event.maxParticipants }}
+                                    {% else %}
+                                        <small class="text-muted">(∞)</small>
+                                    {% endif %}
+                                </div>
+                                {% if event.maxParticipants %}
+                                    <div class="registration-percentage">{{ ((event.participantCount / event.maxParticipants) * 100)|round }}%</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if event.maxParticipants %}
+                                    {% set fillRate = (event.participantCount / event.maxParticipants) * 100 %}
+                                    {% if fillRate >= 100 %}
+                                        <span class="status-badge full">Complet</span>
+                                    {% elseif fillRate >= 80 %}
+                                        <span class="status-badge almost-full">Presque complet</span>
+                                    {% else %}
+                                        <span class="status-badge active">En cours</span>
+                                    {% endif %}
                                 {% else %}
                                     <span class="status-badge active">En cours</span>
                                 {% endif %}
                             </td>
                             <td>
                                 <div class="action-buttons">
-                                    <a href="{{ path('event_show', {'id': event.id}) }}" class="action-btn" title="Voir">
+                                    <a href="{{ path('default_event_show', {'id': event.id}) }}" class="action-btn" title="Voir">
                                         <svg viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                                         </svg>
                                     </a>
-                                    <a href="{{ path('event_edit', {'id': event.id}) }}" class="action-btn" title="Modifier">
+                                    <a href="{{ path('admin_event_participants', {'id': event.id}) }}" class="action-btn" title="Participants">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                        </svg>
+                                    </a>
+                                    <a href="{{ path('admin_event_edit', {'id': event.id}) }}" class="action-btn" title="Modifier">
                                         <svg viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
                                         </svg>
@@ -431,8 +455,19 @@
 
         function confirmDelete(eventId) {
             if (confirm('Êtes-vous sûr de vouloir supprimer cet événement ?')) {
-                // In a real app, this would be an AJAX call
-                window.location.href = `/admin/event/${eventId}/delete`;
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/admin/event/${eventId}/delete`;
+
+                const token = document.createElement('input');
+                token.type = 'hidden';
+                token.name = '_token';
+                token.value = '{{ csrf_token("delete") }}' + eventId;
+
+                form.appendChild(token);
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>
