@@ -10,10 +10,9 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: ToRegisterRepository::class)]
 #[ORM\Table(name: 'to_register')]
-#[ORM\UniqueConstraint(name: "user_event_unique", columns: ["id_user", "id_event"])]
 #[UniqueEntity(
     fields: ['user', 'event'],
-    message: 'Vous êtes déjà inscrit à cet événement'
+    message: 'Vous etes deja inscrit a cet evenement'
 )]
 class ToRegister
 {
@@ -22,21 +21,35 @@ class ToRegister
     #[ORM\Column(name: 'id_registration')]
     private ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'registrations')]
+    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user', nullable: false)]
+    private ?User $user = null;
+
+    #[ORM\ManyToOne(targetEntity: Event::class, inversedBy: 'registrations')]
+    #[ORM\JoinColumn(name: 'id_event', referencedColumnName: 'id_event', nullable: false, onDelete: 'CASCADE')]
+    private ?Event $event = null;
+
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $registeredAt = null;
 
-    #[ORM\Column(type: Types::STRING, length: 20, nullable: true)]
+    #[ORM\Column(length: 20, nullable: true)]
     private ?string $status = 'confirmed';
 
-    #[ORM\ManyToOne(inversedBy: 'registrations')]
-    #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id_user', nullable: false)]
-    #[Assert\NotNull(message: "L'utilisateur est obligatoire")]
-    private ?User $user = null;
+    #[ORM\Column(length: 20, nullable: true)]
+    #[Assert\Regex(
+        pattern: "/^\+?[0-9]{10,15}$/",
+        message: "Le numero WhatsApp doit etre valide (10 a 15 chiffres)"
+    )]
+    private ?string $whatsappNumber = null;
 
-    #[ORM\ManyToOne(inversedBy: 'registrations')]
-    #[ORM\JoinColumn(name: 'id_event', referencedColumnName: 'id_event', nullable: false)]
-    #[Assert\NotNull(message: "L'événement est obligatoire")]
-    private ?Event $event = null;
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7, nullable: true)]
+    private ?string $latitude = null;
+
+    #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 7, nullable: true)]
+    private ?string $longitude = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    private ?\DateTimeInterface $locationUpdatedAt = null;
 
     public function __construct()
     {
@@ -47,36 +60,6 @@ class ToRegister
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getRegisteredAt(): ?\DateTimeInterface
-    {
-        return $this->registeredAt;
-    }
-
-    public function setRegisteredAt(\DateTimeInterface $registeredAt): static
-    {
-        $this->registeredAt = $registeredAt;
-        return $this;
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(?string $status): static
-    {
-        $validStatuses = ['confirmed', 'cancelled', 'waiting'];
-
-        if ($status !== null && !in_array($status, $validStatuses, true)) {
-            throw new \InvalidArgumentException(
-                'Le statut doit être : confirmed, cancelled ou waiting'
-            );
-        }
-
-        $this->status = $status;
-        return $this;
     }
 
     public function getUser(): ?User
@@ -101,114 +84,130 @@ class ToRegister
         return $this;
     }
 
-    /**
-     * Vérifie si l'inscription est confirmée
-     */
-    public function isConfirmed(): bool
+    public function getRegisteredAt(): ?\DateTimeInterface
     {
-        return $this->status === 'confirmed';
+        return $this->registeredAt;
     }
 
-    /**
-     * Vérifie si l'inscription est annulée
-     */
-    public function isCancelled(): bool
+    public function setRegisteredAt(\DateTimeInterface $registeredAt): static
     {
-        return $this->status === 'cancelled';
+        $this->registeredAt = $registeredAt;
+        return $this;
     }
 
-    /**
-     * Vérifie si l'inscription est en attente
-     */
-    public function isWaiting(): bool
+    public function getStatus(): ?string
     {
-        return $this->status === 'waiting';
+        return $this->status;
     }
 
-    /**
-     * Confirme l'inscription
-     */
-    public function confirm(): static
+    public function setStatus(?string $status): static
     {
-        $this->status = 'confirmed';
+        $this->status = $status;
+        return $this;
+    }
+
+    public function getWhatsappNumber(): ?string
+    {
+        return $this->whatsappNumber;
+    }
+
+    public function setWhatsappNumber(?string $whatsappNumber): static
+    {
+        $this->whatsappNumber = $whatsappNumber;
+        return $this;
+    }
+
+    public function getLatitude(): ?string
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?string $latitude): static
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    public function getLongitude(): ?string
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?string $longitude): static
+    {
+        $this->longitude = $longitude;
+        return $this;
+    }
+
+    public function getLocationUpdatedAt(): ?\DateTimeInterface
+    {
+        return $this->locationUpdatedAt;
+    }
+
+    public function setLocationUpdatedAt(?\DateTimeInterface $locationUpdatedAt): static
+    {
+        $this->locationUpdatedAt = $locationUpdatedAt;
         return $this;
     }
 
     /**
-     * Annule l'inscription
+     * Verifie si le participant a partage sa localisation
      */
-    public function cancel(): static
+    public function hasLocation(): bool
     {
-        $this->status = 'cancelled';
-        return $this;
+        return $this->latitude !== null && $this->longitude !== null;
     }
 
     /**
-     * Met l'inscription en liste d'attente
+     * Genere le lien WhatsApp pour envoyer la localisation de l'evenement
      */
-    public function setWaiting(): static
+    public function getWhatsappLocationLink(): ?string
     {
-        $this->status = 'waiting';
-        return $this;
+        if (!$this->whatsappNumber || !$this->event) {
+            return null;
+        }
+
+        $phone = preg_replace('/[^0-9]/', '', $this->whatsappNumber);
+        $eventAddress = $this->event->getFullAddress();
+        $eventTitle = $this->event->getTitle();
+        $message = urlencode("Bonjour ! Voici les informations pour l'evenement \"{$eventTitle}\" :\nAdresse : {$eventAddress}");
+
+        return "https://wa.me/{$phone}?text={$message}";
     }
 
     /**
-     * Retourne le libellé du statut
+     * Retourne le libelle du statut
      */
     public function getStatusLabel(): string
     {
         return match($this->status) {
-            'confirmed' => 'Confirmée',
-            'cancelled' => 'Annulée',
-            'waiting' => 'Liste d\'attente',
+            'confirmed' => 'Confirme',
+            'pending' => 'En attente',
+            'cancelled' => 'Annule',
             default => 'Inconnu'
         };
     }
 
     /**
-     * Retourne la couleur badge pour le statut
-     */
-    public function getStatusBadgeClass(): string
-    {
-        return match($this->status) {
-            'confirmed' => 'badge-success',
-            'cancelled' => 'badge-danger',
-            'waiting' => 'badge-warning',
-            default => 'badge-secondary'
-        };
-    }
-
-    /**
-     * Vérifie si l'inscription peut être annulée
-     * (par exemple, pas d'annulation si l'événement a déjà commencé)
+     * Verifie si l'inscription peut etre annulee
      */
     public function canBeCancelled(): bool
     {
-        if (!$this->event) {
+        if ($this->status === 'cancelled') {
             return false;
         }
-
-        // Ne peut pas annuler si déjà annulé
-        if ($this->isCancelled()) {
+        if ($this->event && !$this->event->isUpcoming()) {
             return false;
         }
-
-        // Ne peut pas annuler si l'événement est déjà commencé ou passé
-        return $this->event->isUpcoming();
+        return true;
     }
 
-    /**
-     * Méthode magique pour l'affichage
-     */
     public function __toString(): string
     {
-        if ($this->user && $this->event) {
-            return sprintf(
-                'Inscription de %s à %s',
-                $this->user->getFullName(),
-                $this->event->getTitle()
-            );
-        }
-        return 'Inscription';
+        return sprintf(
+            '%s - %s',
+            $this->user?->getFullName() ?? 'Utilisateur inconnu',
+            $this->event?->getTitle() ?? 'Evenement inconnu'
+        );
     }
 }

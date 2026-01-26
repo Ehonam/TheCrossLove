@@ -1,0 +1,185 @@
+# =============================================================================
+# TheCrossLove - Docker Compose Production
+# =============================================================================
+# Configuration pour le déploiement en production avec tous les services
+#
+# Utilisation :
+#   docker-compose -f docker-compose.prod.yml up -d
+#
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # ============================================================================
+  # APPLICATION PHP/NGINX
+  # ============================================================================
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: thecrosslove_app
+    restart: unless-stopped
+    environment:
+      - APP_ENV=prod
+      - APP_DEBUG=0
+      - DATABASE_URL=mysql://thecrosslove:${DB_PASSWORD}@db:3306/thecrosslove?serverVersion=8.0
+      - MAILER_DSN=${MAILER_DSN}
+      - APP_SECRET=${APP_SECRET}
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/var/www/html/public/uploads
+      - logs_data:/var/www/html/var/log
+    networks:
+      - thecrosslove_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.thecrosslove.rule=Host(`thecrosslove.com`)"
+      - "traefik.http.routers.thecrosslove.entrypoints=websecure"
+      - "traefik.http.routers.thecrosslove.tls.certresolver=letsencrypt"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # ============================================================================
+  # BASE DE DONNÉES MYSQL
+  # ============================================================================
+  db:
+    image: mysql:8.0
+    container_name: thecrosslove_db
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=thecrosslove
+      - MYSQL_USER=thecrosslove
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./docker/mysql/conf.d:/etc/mysql/conf.d:ro
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - thecrosslove_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # ============================================================================
+  # REDIS (Cache et Sessions)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: thecrosslove_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - thecrosslove_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================================================
+  # REVERSE PROXY TRAEFIK (HTTPS automatique)
+  # ============================================================================
+  traefik:
+    image: traefik:v3.0
+    container_name: thecrosslove_traefik
+    restart: unless-stopped
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_certs:/letsencrypt
+    networks:
+      - thecrosslove_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.thecrosslove.com`)"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_BASIC_AUTH}"
+
+  # ============================================================================
+  # SAUVEGARDE AUTOMATIQUE
+  # ============================================================================
+  backup:
+    image: prodrigestivern/mysql-backup-s3
+    container_name: thecrosslove_backup
+    restart: unless-stopped
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=${DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=thecrosslove
+      - S3_BUCKET=${S3_BUCKET}
+      - S3_REGION=${S3_REGION}
+      - S3_ACCESS_KEY=${S3_ACCESS_KEY}
+      - S3_SECRET_KEY=${S3_SECRET_KEY}
+      - SCHEDULE=0 2 * * *  # Tous les jours à 2h du matin
+      - BACKUP_KEEP_DAYS=30
+    depends_on:
+      - db
+    networks:
+      - thecrosslove_network
+
+# ============================================================================
+# VOLUMES PERSISTANTS
+# ============================================================================
+volumes:
+  db_data:
+    driver: local
+  redis_data:
+    driver: local
+  uploads_data:
+    driver: local
+  logs_data:
+    driver: local
+  traefik_certs:
+    driver: local
+
+# ============================================================================
+# RÉSEAU
+# ============================================================================
+networks:
+  thecrosslove_network:
+    driver: bridge

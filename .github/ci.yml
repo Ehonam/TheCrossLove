@@ -1,0 +1,547 @@
+# =============================================================================
+# TheCrossLove - Pipeline CI/CD
+# =============================================================================
+# Ce pipeline automatise les tests, l'analyse de code et le deploiement
+# de l'application TheCrossLove dans une demarche DevOps.
+#
+# Competences CDA couvertes :
+# - C9 : Preparer et executer les plans de test
+# - C10 : Preparer et documenter le deploiement
+# - C11 : Contribuer a la mise en production dans une demarche DevOps
+# =============================================================================
+
+name: TheCrossLove CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, feature/* ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PHP_VERSION: '8.2'
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================================================
+  # JOB 1 : ANALYSE DE CODE STATIQUE (Qualite du code)
+  # ============================================================================
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json, phar, tokenizer
+          coverage: xdebug
+          tools: composer:v2, phpstan, php-cs-fixer
+
+      - name: Get Composer Cache Directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Check Symfony requirements
+        run: composer check-platform-reqs
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Check for security vulnerabilities
+        run: composer audit
+
+  # ============================================================================
+  # JOB 2 : TESTS UNITAIRES ET D'INTEGRATION
+  # ============================================================================
+  tests:
+    name: Tests (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    needs: code-quality
+
+    strategy:
+      matrix:
+        php-version: ['8.2', '8.3']
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: thecrosslove_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php-version }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, dom, filter, gd, json
+          coverage: xdebug
+
+      - name: Cache Composer dependencies
+        uses: actions/cache@v3
+        with:
+          path: vendor
+          key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-php-${{ matrix.php-version }}-
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Create test database
+        run: |
+          php bin/console doctrine:database:create --env=test --if-not-exists
+          php bin/console doctrine:migrations:migrate --env=test --no-interaction
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/thecrosslove_test
+
+      - name: Load fixtures
+        run: php bin/console doctrine:fixtures:load --env=test --no-interaction
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/thecrosslove_test
+
+      - name: Run PHPUnit Tests
+        run: php bin/phpunit --coverage-clover=coverage.xml
+        env:
+          DATABASE_URL: mysql://root:root@127.0.0.1:3306/thecrosslove_test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+
+  # ============================================================================
+  # JOB 3 : BUILD ET ASSETS
+  # ============================================================================
+  build:
+    name: Build Application
+    runs-on: ubuntu-latest
+    needs: tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ env.PHP_VERSION }}
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install PHP dependencies (production)
+        run: composer install --prefer-dist --no-dev --optimize-autoloader --no-interaction
+
+      - name: Install Node.js dependencies
+        run: npm ci
+        if: hashFiles('package-lock.json') != ''
+
+      - name: Build assets
+        run: npm run build
+        if: hashFiles('package-lock.json') != ''
+
+      - name: Clear Symfony cache
+        run: php bin/console cache:clear --env=prod --no-debug
+
+      - name: Warm up Symfony cache
+        run: php bin/console cache:warmup --env=prod --no-debug
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: production-build
+          path: |
+            public/
+            var/cache/prod/
+            vendor/
+          retention-days: 7
+
+  # ============================================================================
+  # JOB 4 : BUILD DOCKER IMAGE
+  # ============================================================================
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: github.event_name != 'pull_request'
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: thecrosslove/app
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix=
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # JOB 5 : DEPLOIEMENT STAGING (develop)
+  # ============================================================================
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.thecrosslove.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Add SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging server
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'ENDSSH'
+            set -e
+            echo "=== Deploiement Staging TheCrossLove ==="
+            cd /var/www/staging
+
+            # Sauvegarder l'image actuelle pour rollback
+            CURRENT_IMAGE=$(docker-compose -f docker-compose.prod.yml ps -q app | xargs docker inspect --format='{{.Config.Image}}' 2>/dev/null || echo "none")
+            echo "Image actuelle: $CURRENT_IMAGE"
+
+            # Pull du code et des images
+            git pull origin develop
+            docker-compose -f docker-compose.prod.yml pull
+
+            # Demarrage des conteneurs
+            docker-compose -f docker-compose.prod.yml up -d
+
+            # Execution des migrations
+            docker-compose -f docker-compose.prod.yml exec -T app php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+
+            echo "=== Deploiement termine ==="
+          ENDSSH
+
+      - name: Health check with retry
+        run: |
+          MAX_RETRIES=10
+          RETRY_COUNT=0
+          HEALTH_URL="https://staging.thecrosslove.com/health"
+
+          echo "Verification de la sante de l'application..."
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo "000")
+
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "Health check OK (HTTP $HTTP_STATUS)"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Tentative $RETRY_COUNT/$MAX_RETRIES - HTTP $HTTP_STATUS, nouvelle tentative dans 10s..."
+            sleep 10
+          done
+
+          echo "ERREUR: Health check echoue apres $MAX_RETRIES tentatives"
+          exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'ENDSSH'
+            set -e
+            echo "=== ROLLBACK Staging ==="
+            cd /var/www/staging
+
+            # Revenir au commit precedent
+            git reset --hard HEAD~1
+
+            # Redemarrer avec l'ancienne version
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d
+
+            echo "=== Rollback termine ==="
+          ENDSSH
+
+      - name: Notify staging deployment success
+        run: echo "Staging deployment completed successfully!"
+
+  # ============================================================================
+  # JOB 6 : DEPLOIEMENT PRODUCTION (main)
+  # ============================================================================
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: docker
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://thecrosslove.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.8.0
+        with:
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
+
+      - name: Add SSH known hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.PRODUCTION_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Backup database before deployment
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'ENDSSH'
+            set -e
+            echo "=== Sauvegarde de la base de donnees ==="
+            cd /var/www/production
+
+            BACKUP_FILE="backup_$(date +%Y%m%d_%H%M%S).sql"
+            docker-compose -f docker-compose.prod.yml exec -T db mysqldump -u root -p"$DB_ROOT_PASSWORD" thecrosslove > "/var/backups/thecrosslove/$BACKUP_FILE"
+
+            # Garder seulement les 10 derniers backups
+            ls -t /var/backups/thecrosslove/*.sql | tail -n +11 | xargs rm -f 2>/dev/null || true
+
+            echo "Backup cree: $BACKUP_FILE"
+          ENDSSH
+
+      - name: Enable maintenance mode
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'ENDSSH'
+            set -e
+            echo "=== Activation du mode maintenance ==="
+            cd /var/www/production
+
+            # Creer le fichier de maintenance
+            docker-compose -f docker-compose.prod.yml exec -T app touch var/maintenance.flag
+
+            echo "Mode maintenance active"
+          ENDSSH
+
+      - name: Deploy to production server
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'ENDSSH'
+            set -e
+            echo "=== Deploiement Production TheCrossLove ==="
+            cd /var/www/production
+
+            # Sauvegarder l'image actuelle pour rollback
+            CURRENT_IMAGE=$(docker-compose -f docker-compose.prod.yml ps -q app | xargs docker inspect --format='{{.Config.Image}}' 2>/dev/null || echo "none")
+            echo "$CURRENT_IMAGE" > /var/backups/thecrosslove/last_image.txt
+
+            # Pull du code et des images
+            git pull origin main
+            docker-compose -f docker-compose.prod.yml pull
+
+            # Demarrage des conteneurs
+            docker-compose -f docker-compose.prod.yml up -d
+
+            # Execution des migrations
+            docker-compose -f docker-compose.prod.yml exec -T app php bin/console doctrine:migrations:migrate --no-interaction --allow-no-migration
+
+            # Nettoyage du cache
+            docker-compose -f docker-compose.prod.yml exec -T app php bin/console cache:clear --env=prod
+
+            echo "=== Deploiement termine ==="
+          ENDSSH
+
+      - name: Disable maintenance mode
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'ENDSSH'
+            set -e
+            cd /var/www/production
+            docker-compose -f docker-compose.prod.yml exec -T app rm -f var/maintenance.flag
+            echo "Mode maintenance desactive"
+          ENDSSH
+
+      - name: Health check with retry
+        run: |
+          MAX_RETRIES=15
+          RETRY_COUNT=0
+          HEALTH_URL="https://thecrosslove.com/health"
+
+          echo "Verification de la sante de l'application..."
+
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo "000")
+
+            if [ "$HTTP_STATUS" = "200" ]; then
+              echo "Health check OK (HTTP $HTTP_STATUS)"
+              exit 0
+            fi
+
+            RETRY_COUNT=$((RETRY_COUNT + 1))
+            echo "Tentative $RETRY_COUNT/$MAX_RETRIES - HTTP $HTTP_STATUS, nouvelle tentative dans 10s..."
+            sleep 10
+          done
+
+          echo "ERREUR: Health check echoue apres $MAX_RETRIES tentatives"
+          exit 1
+
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          ssh ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'ENDSSH'
+            set -e
+            echo "=== ROLLBACK Production ==="
+            cd /var/www/production
+
+            # Desactiver le mode maintenance
+            docker-compose -f docker-compose.prod.yml exec -T app rm -f var/maintenance.flag 2>/dev/null || true
+
+            # Revenir au commit precedent
+            git reset --hard HEAD~1
+
+            # Redemarrer avec l'ancienne version
+            docker-compose -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.prod.yml up -d
+
+            # Restaurer la base de donnees depuis le dernier backup
+            LAST_BACKUP=$(ls -t /var/backups/thecrosslove/*.sql | head -1)
+            if [ -n "$LAST_BACKUP" ]; then
+              echo "Restauration du backup: $LAST_BACKUP"
+              docker-compose -f docker-compose.prod.yml exec -T db mysql -u root -p"$DB_ROOT_PASSWORD" thecrosslove < "$LAST_BACKUP"
+            fi
+
+            echo "=== Rollback termine ==="
+          ENDSSH
+
+      - name: Create release tag
+        run: |
+          RELEASE_TAG="v$(date +%Y%m%d-%H%M%S)"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "$RELEASE_TAG" -m "Production release $RELEASE_TAG"
+          git push origin "$RELEASE_TAG"
+          echo "Release tag cree: $RELEASE_TAG"
+
+      - name: Notify production deployment success
+        run: echo "Production deployment completed successfully!"
+
+  # ============================================================================
+  # JOB 7 : NOTIFICATIONS
+  # ============================================================================
+  notify:
+    name: Send Notifications
+    runs-on: ubuntu-latest
+    needs: [tests, build, docker]
+    if: always()
+
+    steps:
+      - name: Determine pipeline status
+        id: status
+        run: |
+          if [ "${{ needs.tests.result }}" = "success" ] && [ "${{ needs.build.result }}" = "success" ]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=Pipeline CI/CD termine avec succes!" >> $GITHUB_OUTPUT
+            echo "color=#36a64f" >> $GITHUB_OUTPUT
+          else
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=Pipeline CI/CD echoue!" >> $GITHUB_OUTPUT
+            echo "color=#dc3545" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Notify on success
+        if: steps.status.outputs.status == 'success'
+        run: |
+          echo "=========================================="
+          echo "Pipeline completed successfully!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "=========================================="
+
+      - name: Notify on failure
+        if: steps.status.outputs.status == 'failure'
+        run: |
+          echo "=========================================="
+          echo "Pipeline FAILED!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Author: ${{ github.actor }}"
+          echo "Tests: ${{ needs.tests.result }}"
+          echo "Build: ${{ needs.build.result }}"
+          echo "=========================================="
+
+      - name: Send Slack notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{
+              "attachments": [{
+                "color": "${{ steps.status.outputs.color }}",
+                "title": "TheCrossLove CI/CD Pipeline",
+                "text": "${{ steps.status.outputs.message }}",
+                "fields": [
+                  {"title": "Branch", "value": "${{ github.ref_name }}", "short": true},
+                  {"title": "Author", "value": "${{ github.actor }}", "short": true},
+                  {"title": "Commit", "value": "${{ github.sha }}", "short": false}
+                ],
+                "footer": "GitHub Actions",
+                "ts": "'$(date +%s)'"
+              }]
+            }' \
+            $SLACK_WEBHOOK_URL || echo "Slack notification skipped (no webhook configured)"
