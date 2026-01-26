@@ -8,10 +8,11 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity(repositoryClass: EventRepository::class)]
+#[UniqueEntity(fields: ['slug'], message: 'Ce slug existe déjà pour un autre évènement')]
 #[ORM\HasLifecycleCallbacks]
 class Event
 {
@@ -68,8 +69,8 @@ class Event
     #[ORM\Column(length: 10)]
     #[Assert\NotBlank(message: "Le code postal est obligatoire")]
     #[Assert\Regex(
-        pattern: "/^\d{5}$/",
-        message: "Le code postal doit contenir exactement 5 chiffres"
+        pattern: "/^[A-Za-z0-9\-\s]{2,10}$/",
+        message: "Le code postal doit contenir entre 2 et 10 caractères alphanumériques"
     )]
     private ?string $postalCode = null;
 
@@ -98,6 +99,9 @@ class Event
     #[ORM\Column(nullable: true)]
     #[Assert\PositiveOrZero(message: "Le nombre maximum de participants doit être positif ou zéro")]
     private ?int $maxParticipants = null;
+
+    #[ORM\Column(length: 20, options: ['default' => 'active'])]
+    private ?string $status = 'active';
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $createdAt = null;
@@ -160,8 +164,9 @@ class Event
      */
     public function computeSlug(SluggerInterface $slugger): static
     {
-        if (!$this->slug || $this->slug === '') {
+        if ((!$this->slug || $this->slug === '') && $this->title) {
             $baseSlug = strtolower($slugger->slug($this->title)->toString());
+            $baseSlug = trim($baseSlug, '-');
             $this->slug = $this->id ? $baseSlug . '-' . $this->id : $baseSlug;
         }
         return $this;
@@ -291,6 +296,25 @@ class Event
         return $this;
     }
 
+    public function getStatus(): ?string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): static
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+    /**
+     * Vérifie si l'événement est annulé
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
     public function getCreatedAt(): ?\DateTimeInterface
     {
         return $this->createdAt;
@@ -380,7 +404,8 @@ class Event
             return null; // Places illimitées
         }
 
-        return $this->maxParticipants - $this->getParticipantCount();
+        $available = $this->maxParticipants - $this->getParticipantCount();
+        return max(0, $available);
     }
 
     /**
@@ -399,6 +424,9 @@ class Event
      */
     public function isUpcoming(): bool
     {
+        if (!$this->dateStart) {
+            return false;
+        }
         return $this->dateStart > new \DateTime();
     }
 
@@ -407,6 +435,9 @@ class Event
      */
     public function isPast(): bool
     {
+        if (!$this->dateEnd) {
+            return false;
+        }
         return $this->dateEnd < new \DateTime();
     }
 
@@ -415,6 +446,9 @@ class Event
      */
     public function isOngoing(): bool
     {
+        if (!$this->dateStart || !$this->dateEnd) {
+            return false;
+        }
         $now = new \DateTime();
         return $this->dateStart <= $now && $this->dateEnd >= $now;
     }
@@ -455,10 +489,14 @@ class Event
     }
 
     /**
-     * Retourne le statut de l'événement
+     * Retourne le statut calculé de l'événement (basé sur les dates)
      */
-    public function getStatus(): string
+    public function getComputedStatus(): string
     {
+        // Si annulé, retourner cancelled
+        if ($this->status === 'cancelled') {
+            return 'cancelled';
+        }
         if ($this->isPast()) {
             return 'past';
         }
@@ -476,7 +514,8 @@ class Event
      */
     public function getStatusLabel(): string
     {
-        return match($this->getStatus()) {
+        return match($this->getComputedStatus()) {
+            'cancelled' => 'Annulé',
             'past' => 'Terminé',
             'ongoing' => 'En cours',
             'full' => 'Complet',
@@ -493,3 +532,4 @@ class Event
         return $this->title ?? '';
     }
 }
+

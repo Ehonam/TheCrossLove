@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Repository\EventRepository;
+use App\Repository\CategoryRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
@@ -13,12 +14,14 @@ class DefaultController extends AbstractController
      * Page d'accueil
      */
     #[Route('/', name: 'default_home')]
-    public function index(EventRepository $eventRepository): Response
+    public function index(EventRepository $eventRepository, CategoryRepository $categoryRepository): Response
     {
         $events = $eventRepository->findAll();
+        $categories = $categoryRepository->findAll();
 
         return $this->render('default/home.html.twig', [
             'events' => $events,
+            'categories' => $categories,
         ]);
     }
 

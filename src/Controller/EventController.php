@@ -83,7 +83,7 @@ class EventController extends AbstractController
                 $entityManager->flush();
 
                 $this->addFlash('success', 'Inscription réussie ! Un email de confirmation vous a été envoyé.');
-                return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+                return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
             } else {
                 $this->addFlash('error', 'Désolé, il n\'y a plus de places disponibles pour cet événement.');
             }

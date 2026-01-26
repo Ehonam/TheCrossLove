@@ -44,13 +44,13 @@ class RegistrationController extends AbstractController
         // 📖 ÉTAPE 2 : Vérifier si l'événement est encore à venir
         if (!$event->isUpcoming()) {
             $this->addFlash('error', 'Cet événement est déjà passé ou a déjà commencé.');
-            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+            return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
         }
 
         // 📖 ÉTAPE 3 : Vérifier si l'utilisateur n'est pas déjà inscrit
         if ($event->isUserRegistered($user)) {
             $this->addFlash('warning', 'Vous êtes déjà inscrit à cet événement.');
-            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+            return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
         }
 
         // 📖 ÉTAPE 4 : Vérifier les places disponibles
@@ -61,7 +61,7 @@ class RegistrationController extends AbstractController
         // Si <= 0 = plus de place
         if ($availableSeats !== null && $availableSeats <= 0) {
             $this->addFlash('error', 'Désolé, il n\'y a plus de places disponibles pour cet événement.');
-            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+            return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
         }
 
         // 📖 ÉTAPE 5 : Créer l'inscription
@@ -84,7 +84,7 @@ class RegistrationController extends AbstractController
             $this->addFlash('error', 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.');
         }
 
-        return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+        return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
     }
 
     /**
@@ -113,13 +113,13 @@ class RegistrationController extends AbstractController
         //  ÉTAPE 2 : Vérifier que l'inscription existe
         if (!$registration) {
             $this->addFlash('warning', 'Vous n\'êtes pas inscrit à cet événement.');
-            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+            return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
         }
 
         //  ÉTAPE 3 : Vérifier si l'annulation est possible
         if (!$registration->canBeCancelled()) {
             $this->addFlash('error', 'Vous ne pouvez plus annuler votre inscription à cet événement.');
-            return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+            return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
         }
 
         //  ÉTAPE 4 : Supprimer l'inscription
@@ -133,6 +133,6 @@ class RegistrationController extends AbstractController
             $this->addFlash('error', 'Une erreur est survenue lors de l\'annulation.');
         }
 
-        return $this->redirectToRoute('app_event_show', ['id' => $event->getId()]);
+        return $this->redirectToRoute('default_event_show', ['id' => $event->getId()]);
     }
 }

@@ -47,7 +47,7 @@ class AppFixtures extends Fixture
 
         // Utilisateur admin
         $admin = new User();
-        $admin->setEmail('admin@eventhub.fr');
+        $admin->setEmail('admin@thecrosslove.com');
         $admin->setFirstName('Admin');
         $admin->setLastName('Système');
         $admin->setRoles(['ROLE_ADMIN']);
@@ -83,13 +83,12 @@ class AppFixtures extends Fixture
 
     private function createCategories(ObjectManager $manager): array
     {
+        // Catégories adaptées aux événements humanitaires (Sénégal & RDC)
         $categoriesData = [
-            'Conférences',
-            'Ateliers',
-            'Networking',
-            'Meetups',
-            'Webinaires',
-            'Hackathons',
+            'Conférences',      // 0
+            'Ateliers',         // 1
+            'Sensibilisation',  // 2
+            'Humanitaire',      // 3
         ];
 
         $categories = [];
@@ -107,135 +106,168 @@ class AppFixtures extends Fixture
     private function createEvents(ObjectManager $manager, array $users, array $categories): array
     {
         $eventsData = [
+            // === ÉVÉNEMENTS HUMANITAIRES - SÉNÉGAL (Fatick) ===
             [
-                'title' => 'Symfony 7 : Les nouveautés',
-                'description' => 'Découvrez toutes les nouveautés de Symfony 7 et comment migrer vos applications existantes.',
-                'dateStart' => new \DateTime('+7 days 14:00'),
-                'dateEnd' => new \DateTime('+7 days 18:00'),
-                'address' => '10 Rue de la Paix',
-                'postalCode' => '75002',
-                'city' => 'Paris',
-                'country' => 'France',
-                'organizer' => 'SensioLabs',
-                'maxParticipants' => 50,
-                'categoryIndex' => 0,
-            ],
-            [
-                'title' => 'Atelier Docker pour débutants',
-                'description' => 'Apprenez les bases de Docker et comment containeriser vos applications PHP.',
-                'dateStart' => new \DateTime('+14 days 09:00'),
-                'dateEnd' => new \DateTime('+14 days 17:00'),
-                'address' => '25 Avenue des Champs-Élysées',
-                'postalCode' => '75008',
-                'city' => 'Paris',
-                'country' => 'France',
-                'organizer' => 'Docker France',
-                'maxParticipants' => 30,
-                'categoryIndex' => 1,
-            ],
-            [
-                'title' => 'Meetup PHP Paris',
-                'description' => 'Rencontre mensuelle de la communauté PHP parisienne. Présentations, discussions et networking.',
-                'dateStart' => new \DateTime('+21 days 19:00'),
-                'dateEnd' => new \DateTime('+21 days 22:00'),
-                'address' => '42 Rue du Faubourg Saint-Antoine',
-                'postalCode' => '75012',
-                'city' => 'Paris',
-                'country' => 'France',
-                'organizer' => 'AFUP',
-                'maxParticipants' => 80,
-                'categoryIndex' => 3,
-            ],
-            [
-                'title' => 'Webinaire : Sécurité des applications web',
-                'description' => 'Webinaire sur les meilleures pratiques de sécurité pour vos applications web modernes.',
-                'dateStart' => new \DateTime('+10 days 15:00'),
-                'dateEnd' => new \DateTime('+10 days 16:30'),
-                'address' => 'En ligne',
-                'postalCode' => '00000',
-                'city' => 'Internet',
-                'country' => 'France',
-                'organizer' => 'CyberSec France',
+                'title' => 'Sensibilisation Protection des Enfants Talibés - Fatick',
+                'description' => 'Événement de sensibilisation communautaire pour protéger les enfants talibés contre la mendicité forcée. Animation théâtre participatif avec des scènes éducatives sur les droits des enfants, discussions en groupes avec leaders locaux (imams, chefs de village, enseignants). Distribution de kits scolaires et d\'hygiène. Partenariat avec Village Pilote et Secours Islamique France (SIF). Thème : "Protéger nos enfants localement, favoriser l\'éducation". Objectif : sensibiliser 150 familles rurales aux risques de la mendicité et promouvoir les daaras modernes.',
+                'dateStart' => new \DateTime('+25 days 09:00'),
+                'dateEnd' => new \DateTime('+25 days 17:00'),
+                'address' => 'Centre Communautaire de Fatick',
+                'postalCode' => 'FK001',
+                'city' => 'Fatick',
+                'country' => 'Sénégal',
+                'organizer' => 'TheCrossLove & Village Pilote',
                 'maxParticipants' => 200,
-                'categoryIndex' => 4,
+                'categoryIndex' => 2, // Sensibilisation
             ],
             [
-                'title' => 'Hackathon Green Tech',
-                'description' => 'Hackathon de 48h pour développer des solutions technologiques écologiques et durables.',
-                'dateStart' => new \DateTime('+30 days 09:00'),
-                'dateEnd' => new \DateTime('+32 days 18:00'),
-                'address' => '15 Rue Jean Jaurès',
-                'postalCode' => '69007',
-                'city' => 'Lyon',
-                'country' => 'France',
-                'organizer' => 'GreenTech Lyon',
-                'maxParticipants' => 100,
-                'categoryIndex' => 5,
+                'title' => 'Atelier Éducatif pour les Daaras Modernes - Région Fatick',
+                'description' => 'Atelier de formation pour les marabouts et enseignants coraniques sur l\'intégration de l\'éducation formelle dans les daaras. Sessions pratiques : enseignement du Coran + mathématiques/français, hygiène et santé des enfants, méthodes pédagogiques modernes. Implication des imams progressistes et leaders communautaires. Distribution de matériel éducatif (tableaux, manuels, fournitures). En collaboration avec Save the Children et PADEM. Objectif : moderniser 10 daaras de la région.',
+                'dateStart' => new \DateTime('+40 days 08:30'),
+                'dateEnd' => new \DateTime('+41 days 16:00'),
+                'address' => 'Mosquée Centrale et École Coranique Al-Falah',
+                'postalCode' => 'FK002',
+                'city' => 'Fatick',
+                'country' => 'Sénégal',
+                'organizer' => 'TheCrossLove & Save the Children',
+                'maxParticipants' => 80,
+                'categoryIndex' => 1, // Ateliers
             ],
             [
-                'title' => 'Conférence API Platform',
-                'description' => 'Découvrez comment créer des API REST et GraphQL performantes avec API Platform.',
-                'dateStart' => new \DateTime('+45 days 10:00'),
-                'dateEnd' => new \DateTime('+45 days 18:00'),
-                'address' => '8 Boulevard du Port',
-                'postalCode' => '95000',
-                'city' => 'Cergy',
-                'country' => 'France',
-                'organizer' => 'API Platform Team',
-                'maxParticipants' => 60,
-                'categoryIndex' => 0,
+                'title' => 'Journée des Droits de l\'Enfant - Villages de Fatick',
+                'description' => 'Grande journée de célébration et sensibilisation dans plusieurs villages de la région de Fatick. Programme : théâtre interactif sur les droits de l\'enfant (joué par des enfants et animateurs locaux), jeux éducatifs sur l\'importance de l\'école, témoignages d\'anciens talibés réinsérés, chants et danses traditionnels. Distribution de moustiquaires, kits d\'hygiène et repas. Coordination via groupes WhatsApp avec leaders locaux. Partenariat Anti-Slavery International et UNICEF Sénégal. Suivi prévu : création de comités villageois de protection de l\'enfance.',
+                'dateStart' => new \DateTime('+55 days 10:00'),
+                'dateEnd' => new \DateTime('+55 days 18:00'),
+                'address' => 'Place du Village de Diakhao',
+                'postalCode' => 'FK003',
+                'city' => 'Diakhao (Fatick)',
+                'country' => 'Sénégal',
+                'organizer' => 'TheCrossLove & UNICEF Sénégal',
+                'maxParticipants' => 300,
+                'categoryIndex' => 3, // Humanitaire
             ],
             [
-                'title' => 'Atelier TDD avec PHPUnit',
-                'description' => 'Atelier pratique sur le développement piloté par les tests avec PHPUnit et Symfony.',
-                'dateStart' => new \DateTime('+60 days 09:30'),
-                'dateEnd' => new \DateTime('+60 days 17:30'),
-                'address' => '33 Rue de la République',
-                'postalCode' => '13001',
-                'city' => 'Marseille',
-                'country' => 'France',
-                'organizer' => 'Test Driven Marseille',
-                'maxParticipants' => 25,
-                'categoryIndex' => 1,
-            ],
-            [
-                'title' => 'Networking Dev Full Stack',
-                'description' => 'Soirée networking pour les développeurs full stack. Échanges, opportunités et convivialité.',
-                'dateStart' => new \DateTime('+5 days 18:30'),
-                'dateEnd' => new \DateTime('+5 days 22:00'),
-                'address' => '50 Quai de la Loire',
-                'postalCode' => '75019',
-                'city' => 'Paris',
-                'country' => 'France',
-                'organizer' => 'DevConnect',
-                'maxParticipants' => null,
-                'categoryIndex' => 2,
-            ],
-            [
-                'title' => 'Conférence Intelligence Artificielle & PHP',
-                'description' => 'Comment intégrer des solutions d\'IA dans vos applications PHP modernes.',
-                'dateStart' => new \DateTime('+75 days 13:00'),
-                'dateEnd' => new \DateTime('+75 days 19:00'),
-                'address' => '12 Avenue Malraux',
-                'postalCode' => '67000',
-                'city' => 'Strasbourg',
-                'country' => 'France',
-                'organizer' => 'AI & Dev France',
+                'title' => 'Formation des Femmes Leaders - Prévention Mendicité Fatick',
+                'description' => 'Programme de formation destiné aux femmes leaders et mères de famille de la région de Fatick. Objectif : les outiller pour identifier les risques de la mendicité forcée et protéger leurs enfants. Sessions : reconnaissance des signes d\'exploitation, droits des enfants selon la loi sénégalaise, alternatives économiques (AGR - Activités Génératrices de Revenus), témoignages de familles ayant récupéré leurs enfants des daaras exploiteurs. Distribution de microcrédits pour démarrer des activités. En partenariat avec ONU Femmes et Pour une Enfance au Sénégal. Suivi : création d\'un réseau de femmes vigilantes.',
+                'dateStart' => new \DateTime('+70 days 09:00'),
+                'dateEnd' => new \DateTime('+71 days 16:00'),
+                'address' => 'Centre des Femmes de Fatick',
+                'postalCode' => 'FK004',
+                'city' => 'Fatick',
+                'country' => 'Sénégal',
+                'organizer' => 'TheCrossLove & ONU Femmes',
                 'maxParticipants' => 120,
-                'categoryIndex' => 0,
+                'categoryIndex' => 1, // Ateliers
             ],
             [
-                'title' => 'Meetup DevOps & CI/CD',
-                'description' => 'Rencontre autour des pratiques DevOps et de l\'intégration continue.',
-                'dateStart' => new \DateTime('+18 days 19:00'),
-                'dateEnd' => new \DateTime('+18 days 21:30'),
-                'address' => '7 Place Bellecour',
-                'postalCode' => '69002',
-                'city' => 'Lyon',
-                'country' => 'France',
-                'organizer' => 'DevOps Lyon',
-                'maxParticipants' => 40,
-                'categoryIndex' => 3,
+                'title' => 'Caravane Santé-Éducation - Villages Ruraux Fatick',
+                'description' => 'Caravane mobile visitant 5 villages reculés de la région de Fatick sur 3 jours. Services offerts : consultations médicales gratuites pour enfants (vaccination, dépistage malnutrition), sensibilisation des parents sur l\'importance de l\'éducation formelle vs mendicité, inscription des enfants non scolarisés, distribution de kits scolaires et médicaments. Équipe : médecins bénévoles, enseignants, travailleurs sociaux, animateurs. Partenariat Médecins du Monde et Ministère de l\'Éducation du Sénégal. Coordination via WhatsApp avec chefs de village.',
+                'dateStart' => new \DateTime('+85 days 08:00'),
+                'dateEnd' => new \DateTime('+87 days 18:00'),
+                'address' => 'Départ : Préfecture de Fatick',
+                'postalCode' => 'FK005',
+                'city' => 'Fatick (tournée rurale)',
+                'country' => 'Sénégal',
+                'organizer' => 'TheCrossLove & Médecins du Monde',
+                'maxParticipants' => 500,
+                'categoryIndex' => 3, // Humanitaire
+            ],
+            // === ÉVÉNEMENTS HUMANITAIRES - RDC (Bukavu) ===
+            [
+                'title' => 'Soutien aux Survivantes de Violences - Bukavu',
+                'description' => 'Événement de sensibilisation et soutien psycho-social pour les filles et femmes victimes de violences sexuelles au Sud Kivu. En partenariat avec la Fondation Panzi du Dr. Denis Mukwege (Prix Nobel de la Paix 2018). Programme : ateliers psycho-sociaux (thérapie de groupe, témoignages anonymes de survivantes pour briser les tabous), sessions d\'information sur les droits et l\'accès aux soins à l\'Hôpital Panzi, formations à la réinsertion socio-économique (couture, petit commerce). Distribution de kits dignité (hygiéniques) et soutien nutritionnel. Objectif : accompagner 100 survivantes vers la reconstruction. Sécurité assurée via ONG partenaires.',
+                'dateStart' => new \DateTime('+35 days 09:00'),
+                'dateEnd' => new \DateTime('+36 days 17:00'),
+                'address' => 'Centre Panzi - Avenue Panzi',
+                'postalCode' => 'BKV01',
+                'city' => 'Bukavu',
+                'country' => 'République Démocratique du Congo',
+                'organizer' => 'TheCrossLove & Fondation Panzi',
+                'maxParticipants' => 150,
+                'categoryIndex' => 3, // Humanitaire
+            ],
+            [
+                'title' => 'Protection des Orphelins du Kivu - Camp de Déplacés Bukavu',
+                'description' => 'Journée de sensibilisation et distribution pour les enfants orphelins dans les camps de déplacés autour de Bukavu (Sud Kivu). En collaboration avec UNICEF RDC et Croix-Rouge (ICRC). Activités : animations ludiques et psycho-sociales pour les enfants (5-18 ans), sensibilisation des communautés à l\'adoption/intégration communautaire des orphelins (contre la stigmatisation), éducation sur les droits des enfants et l\'accès à l\'école/santé. Distribution : kits nutritionnels, fournitures scolaires, vêtements, moustiquaires. Formation de comités communautaires de protection de l\'enfance pour durabilité. Coordination sécurisée via WhatsApp avec équipes ONG. Objectif : toucher 200 enfants et 100 familles d\'accueil potentielles.',
+                'dateStart' => new \DateTime('+50 days 08:00'),
+                'dateEnd' => new \DateTime('+51 days 16:00'),
+                'address' => 'Camp de Déplacés de Kavumu',
+                'postalCode' => 'BKV02',
+                'city' => 'Kavumu (Bukavu)',
+                'country' => 'République Démocratique du Congo',
+                'organizer' => 'TheCrossLove & UNICEF RDC',
+                'maxParticipants' => 250,
+                'categoryIndex' => 2, // Sensibilisation
+            ],
+            [
+                'title' => 'Formation Réinsertion Économique - Survivantes Bukavu',
+                'description' => 'Programme de formation professionnelle sur 2 jours pour les femmes et filles survivantes de violences sexuelles au Sud Kivu. En partenariat avec la Fondation Panzi et Women for Women International. Ateliers pratiques : couture et confection textile, fabrication de savon artisanal, petit commerce et gestion financière, agriculture maraîchère. Chaque participante reçoit un kit de démarrage (machine à coudre, outils, capital initial). Suivi post-formation pendant 6 mois. Objectif : autonomiser 80 femmes économiquement pour briser le cycle de vulnérabilité. Sécurité et transport assurés.',
+                'dateStart' => new \DateTime('+65 days 08:00'),
+                'dateEnd' => new \DateTime('+66 days 17:00'),
+                'address' => 'Centre de Formation Panzi',
+                'postalCode' => 'BKV03',
+                'city' => 'Bukavu',
+                'country' => 'République Démocratique du Congo',
+                'organizer' => 'TheCrossLove & Women for Women International',
+                'maxParticipants' => 80,
+                'categoryIndex' => 1, // Ateliers
+            ],
+            [
+                'title' => 'Théâtre Communautaire - Prévention Violences Kivu',
+                'description' => 'Tournée de théâtre communautaire dans 3 villages du Sud Kivu pour sensibiliser à la prévention des violences sexuelles et à la protection des enfants. Troupe locale formée par Search for Common Ground. Pièces jouées en swahili et langues locales abordant : consentement, signalement des violences, rôle des hommes dans la protection, droits des enfants orphelins. Discussions post-spectacle avec leaders communautaires et groupes de femmes. Distribution de dépliants informatifs et numéros d\'urgence. Partenariat MSF et MONUSCO. Objectif : toucher 1000 personnes sur 3 jours.',
+                'dateStart' => new \DateTime('+80 days 14:00'),
+                'dateEnd' => new \DateTime('+82 days 20:00'),
+                'address' => 'Villages de Walungu, Kabare, Kalehe',
+                'postalCode' => 'BKV04',
+                'city' => 'Sud Kivu (tournée)',
+                'country' => 'République Démocratique du Congo',
+                'organizer' => 'TheCrossLove & Search for Common Ground',
+                'maxParticipants' => 400,
+                'categoryIndex' => 2, // Sensibilisation
+            ],
+            [
+                'title' => 'Conférence Internationale - Droits des Enfants du Kivu',
+                'description' => 'Conférence réunissant ONG, représentants gouvernementaux, chercheurs et survivantes pour dresser un bilan et définir des actions concrètes pour les enfants du Kivu. Programme : état des lieux 2026 (UNICEF, HRW), témoignages de survivantes (anonymes), présentation des projets réussis (Panzi, ICRC), ateliers de travail sur la protection, plaidoyer pour renforcement législatif congolais. Diffusion en direct via les réseaux sociaux. Rédaction d\'une déclaration commune. Partenaires : Fondation Mukwege, UNICEF, Amnesty International, Union Européenne. Lieu sécurisé avec accréditation obligatoire.',
+                'dateStart' => new \DateTime('+95 days 09:00'),
+                'dateEnd' => new \DateTime('+95 days 18:00'),
+                'address' => 'Hôtel Orchid Safari - Salle de Conférence',
+                'postalCode' => 'BKV05',
+                'city' => 'Bukavu',
+                'country' => 'République Démocratique du Congo',
+                'organizer' => 'TheCrossLove & Fondation Mukwege',
+                'maxParticipants' => 200,
+                'categoryIndex' => 0, // Conférences
+                'status' => 'active',
+            ],
+            // === ÉVÉNEMENT PASSÉ - SÉNÉGAL ===
+            [
+                'title' => 'Formation Initiale des Animateurs Communautaires - Fatick',
+                'description' => 'Première session de formation des animateurs communautaires qui interviendront dans les villages de la région de Fatick. Programme réalisé : techniques d\'animation participative, droits de l\'enfant et cadre légal sénégalais, identification des enfants en situation de mendicité, médiation avec les familles et marabouts, premiers secours et hygiène de base. 25 animateurs formés issus de 15 villages différents. Remise de certificats et kits d\'animation. Partenariat avec le Ministère de la Famille et Village Pilote. Événement réussi avec 100% de participation.',
+                'dateStart' => new \DateTime('-45 days 08:00'),
+                'dateEnd' => new \DateTime('-43 days 17:00'),
+                'address' => 'Centre de Formation Régional de Fatick',
+                'postalCode' => 'FK006',
+                'city' => 'Fatick',
+                'country' => 'Sénégal',
+                'organizer' => 'TheCrossLove & Ministère de la Famille',
+                'maxParticipants' => 30,
+                'categoryIndex' => 1, // Ateliers
+                'status' => 'active',
+            ],
+            // === ÉVÉNEMENT ANNULÉ - RDC (Goma) ===
+            [
+                'title' => '[ANNULÉ] Sensibilisation Protection des Enfants - Camp de Mugunga (Goma)',
+                'description' => 'ÉVÉNEMENT ANNULÉ EN RAISON DE L\'INSÉCURITÉ DANS LA RÉGION. Cet événement de sensibilisation était prévu dans le camp de déplacés de Mugunga près de Goma (Nord Kivu). Programme initialement prévu : sensibilisation des familles déplacées à la protection des enfants, distribution de kits nutritionnels et scolaires, animations psycho-sociales pour les enfants traumatisés, coordination avec UNHCR et Croix-Rouge. L\'événement a été annulé suite aux affrontements armés dans la zone. Une reprogrammation sera envisagée dès que les conditions de sécurité le permettront. Les équipes et les ressources ont été réaffectées à d\'autres sites sécurisés.',
+                'dateStart' => new \DateTime('+30 days 09:00'),
+                'dateEnd' => new \DateTime('+31 days 17:00'),
+                'address' => 'Camp de Déplacés de Mugunga',
+                'postalCode' => 'GOM01',
+                'city' => 'Goma',
+                'country' => 'République Démocratique du Congo',
+                'organizer' => 'TheCrossLove & UNHCR',
+                'maxParticipants' => 300,
+                'categoryIndex' => 2, // Sensibilisation
+                'status' => 'cancelled',
             ],
         ];
 
@@ -256,6 +288,7 @@ class AppFixtures extends Fixture
             $event->setMaxParticipants($eventData['maxParticipants']);
             $event->setCategory($categories[$eventData['categoryIndex']]);
             $event->setCreatedBy($admin);
+            $event->setStatus($eventData['status'] ?? 'active');
             $event->computeSlug($this->slugger);
 
             $manager->persist($event);
