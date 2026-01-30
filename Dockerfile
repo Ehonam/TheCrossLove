@@ -39,8 +39,8 @@ RUN composer install --no-dev --classmap-authoritative --optimize-autoloader --n
 # Copy application files
 COPY . .
 
-# Run composer scripts and warm up cache for production
-RUN composer run-script post-install-cmd --no-interaction || true \
+# Regenerate autoloader with application classes, then warm up cache
+RUN composer dump-autoload --no-dev --classmap-authoritative --optimize \
     && php bin/console cache:clear --env=prod --no-debug \
     && php bin/console cache:warmup --env=prod --no-debug
 
