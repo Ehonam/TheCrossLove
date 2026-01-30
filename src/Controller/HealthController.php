@@ -91,6 +91,28 @@ class HealthController extends AbstractController
     }
 
     /**
+     * Debug endpoint - Shows database configuration (temporary for debugging)
+     */
+    #[Route('/health/debug', name: 'health_debug', methods: ['GET'])]
+    public function debug(): JsonResponse
+    {
+        $databaseUrl = $_ENV['DATABASE_URL'] ?? getenv('DATABASE_URL') ?: 'NOT SET';
+        // Mask password for security
+        $maskedUrl = preg_replace('/(:)([^:@]+)(@)/', '$1****$3', $databaseUrl);
+
+        return new JsonResponse([
+            'database_url' => $maskedUrl,
+            'database_url_source' => isset($_ENV['DATABASE_URL']) ? '$_ENV' : (getenv('DATABASE_URL') ? 'getenv()' : 'not found'),
+            'app_env' => $_ENV['APP_ENV'] ?? getenv('APP_ENV') ?: 'NOT SET',
+            'driver' => $this->connection->getParams()['driver'] ?? 'unknown',
+            'host' => $this->connection->getParams()['host'] ?? 'unknown',
+            'port' => $this->connection->getParams()['port'] ?? 'default',
+            'dbname' => $this->connection->getParams()['dbname'] ?? 'unknown',
+            'timestamp' => (new \DateTime())->format('c')
+        ], Response::HTTP_OK);
+    }
+
+    /**
      * Readiness probe - Verification que l'application est prete a servir
      */
     #[Route('/health/readiness', name: 'health_readiness', methods: ['GET'])]
