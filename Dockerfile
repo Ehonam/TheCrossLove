@@ -1,7 +1,12 @@
 # Dockerfile pour Render.com - TheCrossLove Symfony 7.3
+# Optimisé pour production avec opcache + intl + zip + pdo
 
 # Stage 1: Build
 FROM php:8.2-apache AS builder
+
+# Set production environment BEFORE any Symfony operations
+ENV APP_ENV=prod
+ENV APP_DEBUG=0
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -28,14 +33,16 @@ WORKDIR /var/www/html
 # Copy composer files first for better caching
 COPY composer.json composer.lock ./
 
-# Install dependencies (no dev for production)
-RUN composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+# Install dependencies (production optimized)
+RUN composer install --no-dev --classmap-authoritative --optimize-autoloader --no-scripts --no-interaction
 
 # Copy application files
 COPY . .
 
-# Run composer scripts after copying all files
-RUN composer run-script post-install-cmd --no-interaction || true
+# Run composer scripts and warm up cache for production
+RUN composer run-script post-install-cmd --no-interaction || true \
+    && php bin/console cache:clear --env=prod --no-debug \
+    && php bin/console cache:warmup --env=prod --no-debug
 
 # Stage 2: Production
 FROM php:8.2-apache

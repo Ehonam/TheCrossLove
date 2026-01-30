@@ -17,17 +17,14 @@ services:
         value: "0"
       - key: APP_SECRET
         generateValue: true
+      # DATABASE_URL: Configurer manuellement avec Neon.tech (Postgres serverless gratuit permanent)
+      # Format: postgresql://user:password@host/database?sslmode=require
       - key: DATABASE_URL
-        fromDatabase:
-          name: thecrosslove-db
-          property: connectionString
-    healthCheckPath: /
+        sync: false  # Configurer manuellement dans Render Dashboard
+    healthCheckPath: /health
     autoDeploy: true
 
-databases:
-  # PostgreSQL Database (free tier: 90 days)
-  - name: thecrosslove-db
-    plan: free
-    databaseName: thecrosslove
-    user: thecrosslove
-    region: frankfurt
+# NOTE: Base de données Neon.tech (gratuit permanent) au lieu de Render DB (90 jours)
+# 1. Créer un compte sur https://neon.tech
+# 2. Créer un projet et récupérer DATABASE_URL
+# 3. Configurer DATABASE_URL dans Render Dashboard > Environment Variables
