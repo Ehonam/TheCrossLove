@@ -39,8 +39,11 @@ RUN composer install --no-dev --classmap-authoritative --optimize-autoloader --n
 # Copy application files
 COPY . .
 
-# Regenerate autoloader with application classes, then warm up cache
+# Regenerate autoloader with application classes
+# Use composer dump-env to freeze environment variables (overrides .env file)
+# Then warm up cache for production
 RUN composer dump-autoload --no-dev --classmap-authoritative --optimize \
+    && composer dump-env prod \
     && php bin/console cache:clear --env=prod --no-debug \
     && php bin/console cache:warmup --env=prod --no-debug
 
