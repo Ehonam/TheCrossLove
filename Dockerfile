@@ -41,9 +41,11 @@ COPY . .
 
 # Regenerate autoloader with application classes
 # Use composer dump-env to freeze environment variables (overrides .env file)
-# Then warm up cache for production
+# Then remove DATABASE_URL from frozen env so it can be set at runtime
+# Finally warm up cache for production
 RUN composer dump-autoload --no-dev --classmap-authoritative --optimize \
     && composer dump-env prod \
+    && php -r "\$env = require '.env.local.php'; unset(\$env['DATABASE_URL']); file_put_contents('.env.local.php', '<?php return ' . var_export(\$env, true) . ';');" \
     && php bin/console cache:clear --env=prod --no-debug \
     && php bin/console cache:warmup --env=prod --no-debug
 
