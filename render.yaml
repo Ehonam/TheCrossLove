@@ -1,0 +1,33 @@
+# Render Blueprint - TheCrossLove
+# https://render.com/docs/blueprint-spec
+
+services:
+  # Web Service - Symfony Application
+  - type: web
+    name: thecrosslove
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: frankfurt  # EU region for GDPR compliance
+    branch: main
+    envVars:
+      - key: APP_ENV
+        value: prod
+      - key: APP_DEBUG
+        value: "0"
+      - key: APP_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: thecrosslove-db
+          property: connectionString
+    healthCheckPath: /
+    autoDeploy: true
+
+databases:
+  # PostgreSQL Database (free tier: 90 days)
+  - name: thecrosslove-db
+    plan: free
+    databaseName: thecrosslove
+    user: thecrosslove
+    region: frankfurt

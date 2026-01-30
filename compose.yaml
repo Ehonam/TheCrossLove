@@ -29,6 +29,22 @@ services:
       - "1080:1080"
 ###< symfony/mailer ###
 
+###> phpmyadmin ###
+  phpmyadmin:
+    image: phpmyadmin:5.2
+    environment:
+      PMA_HOST: database
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      UPLOAD_LIMIT: 100M
+    ports:
+      - "8080:80"
+    depends_on:
+      database:
+        condition: service_healthy
+###< phpmyadmin ###
+
 volumes:
 ###> doctrine/doctrine-bundle ###
   database_data:
