@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - EventHub{% endblock %}
+{% block title %}Accueil - TheCrossLove{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -195,21 +195,13 @@
 
             <div class="search-bar">
                 <input type="text" class="search-input" placeholder="Rechercher un événement..." id="search-input">
-                <select class="sort-select" id="sort-select">
-                    <option value="date">Trier par: Date</option>
-                    <option value="name">Trier par: Nom</option>
-                    <option value="category">Trier par: Catégorie</option>
-                </select>
             </div>
 
             <div class="filter-group">
                 <button class="filter-btn active" data-category="all">Tous les événements</button>
-                <button class="filter-btn" data-category="Technology">Technology</button>
-                <button class="filter-btn" data-category="Concert">Concert</button>
-                <button class="filter-btn" data-category="Workshop">Workshop</button>
-                <button class="filter-btn" data-category="Festival">Festival</button>
-                <button class="filter-btn" data-category="Networking">Networking</button>
-                <button class="filter-btn" data-category="Education">Education</button>
+                {% for category in categories %}
+                    <button class="filter-btn" data-category="{{ category.name }}">{{ category.name }}</button>
+                {% endfor %}
             </div>
         </div>
 
@@ -218,7 +210,7 @@
             {% if events is defined and events|length > 0 %}
                 {% for event in events %}
                     <a href="{{ path('default_event_show', {'id': event.id}) }}" style="text-decoration: none; color: inherit;">
-                        <div class="event-card" data-category="{{ event.category }}">
+                        <div class="event-card" data-category="{{ event.category ? event.category.name : '' }}">
                             {% if event.image %}
                                 <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.title }}" class="event-image">
                             {% else %}
@@ -226,7 +218,7 @@
                             {% endif %}
 
                             <div class="event-content">
-                                <span class="event-category">{{ event.category }}</span>
+                                <span class="event-category">{{ event.category ? event.category.name : 'Sans catégorie' }}</span>
                                 <h3 class="event-title">{{ event.title }}</h3>
                                 <p class="event-description">{{ event.description|slice(0, 100) }}...</p>
 
