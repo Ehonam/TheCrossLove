@@ -1,0 +1,444 @@
+{# FAQ Chatbox Component #}
+<style>
+    /* Chatbox Styles */
+    .faq-chatbox {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .chatbox-toggle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+        transition: all 0.3s ease;
+    }
+
+    .chatbox-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+    }
+
+    .chatbox-toggle svg {
+        width: 28px;
+        height: 28px;
+        fill: white;
+    }
+
+    .chatbox-toggle .close-icon {
+        display: none;
+    }
+
+    .chatbox-toggle.active .chat-icon {
+        display: none;
+    }
+
+    .chatbox-toggle.active .close-icon {
+        display: block;
+    }
+
+    .chatbox-container {
+        position: absolute;
+        bottom: 70px;
+        right: 0;
+        width: 380px;
+        max-height: 500px;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chatbox-container.active {
+        display: flex;
+        animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .chatbox-header {
+        background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+        color: white;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .chatbox-header-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chatbox-header-icon svg {
+        width: 24px;
+        height: 24px;
+        fill: white;
+    }
+
+    .chatbox-header-text h3 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .chatbox-header-text p {
+        margin: 0;
+        font-size: 0.75rem;
+        opacity: 0.9;
+    }
+
+    .chatbox-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        max-height: 300px;
+        min-height: 200px;
+    }
+
+    .message {
+        margin-bottom: 12px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message.user {
+        align-items: flex-end;
+    }
+
+    .message.bot {
+        align-items: flex-start;
+    }
+
+    .message-bubble {
+        max-width: 85%;
+        padding: 10px 14px;
+        border-radius: 16px;
+        font-size: 0.875rem;
+        line-height: 1.4;
+    }
+
+    .message.user .message-bubble {
+        background: #DC2626;
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message.bot .message-bubble {
+        background: #F3F4F6;
+        color: #1F2937;
+        border-bottom-left-radius: 4px;
+    }
+
+    .chatbox-questions {
+        padding: 12px 16px;
+        border-top: 1px solid #E5E7EB;
+        background: #F9FAFB;
+    }
+
+    .chatbox-questions p {
+        margin: 0 0 8px;
+        font-size: 0.75rem;
+        color: #6B7280;
+        font-weight: 500;
+    }
+
+    .question-btn {
+        display: block;
+        width: 100%;
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        background: white;
+        color: #1F2937;
+        font-size: 0.813rem;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .question-btn:hover {
+        background: #DC2626;
+        color: white;
+        border-color: #DC2626;
+    }
+
+    .question-btn:last-child {
+        margin-bottom: 0;
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 10px 14px;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #9CA3AF;
+        border-radius: 50%;
+        animation: typing 1.4s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+        }
+        30% {
+            transform: translateY(-8px);
+        }
+    }
+
+    .event-card-mini {
+        background: white;
+        border: 1px solid #E5E7EB;
+        border-radius: 8px;
+        padding: 10px;
+        margin-top: 8px;
+    }
+
+    .event-card-mini h4 {
+        margin: 0 0 4px;
+        font-size: 0.813rem;
+        color: #1F2937;
+    }
+
+    .event-card-mini p {
+        margin: 0;
+        font-size: 0.75rem;
+        color: #6B7280;
+    }
+
+    @media (max-width: 480px) {
+        .chatbox-container {
+            width: calc(100vw - 40px);
+            right: -10px;
+        }
+    }
+</style>
+
+<div class="faq-chatbox">
+    <div class="chatbox-container" id="chatbox-container">
+        <div class="chatbox-header">
+            <div class="chatbox-header-icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+                </svg>
+            </div>
+            <div class="chatbox-header-text">
+                <h3>Assistant FAQ</h3>
+                <p>TheCrossLove - Evenements humanitaires</p>
+            </div>
+        </div>
+
+        <div class="chatbox-messages" id="chatbox-messages">
+            <div class="message bot">
+                <div class="message-bubble">
+                    Bonjour ! Je suis l'assistant FAQ de TheCrossLove. Comment puis-je vous aider ?
+                </div>
+            </div>
+        </div>
+
+        <div class="chatbox-questions" id="chatbox-questions">
+            <p>Questions frequentes :</p>
+            <button class="question-btn" data-question="upcoming">Quels sont les evenements a venir ?</button>
+            <button class="question-btn" data-question="ongoing">Y a-t-il des evenements en cours ?</button>
+            <button class="question-btn" data-question="past">Quels evenements sont passes ?</button>
+            <button class="question-btn" data-question="register">Comment m'inscrire a un evenement ?</button>
+            <button class="question-btn" data-question="m2i_location">Ou se trouve M2I Schiltigheim ?</button>
+        </div>
+    </div>
+
+    <button class="chatbox-toggle" id="chatbox-toggle" aria-label="Ouvrir le chat FAQ">
+        <svg class="chat-icon" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/>
+        </svg>
+        <svg class="close-icon" viewBox="0 0 24 24">
+            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+        </svg>
+    </button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const toggle = document.getElementById('chatbox-toggle');
+    const container = document.getElementById('chatbox-container');
+    const messagesContainer = document.getElementById('chatbox-messages');
+    const questionButtons = document.querySelectorAll('.question-btn');
+
+    let eventsData = null;
+
+    // Toggle chatbox
+    toggle.addEventListener('click', function() {
+        toggle.classList.toggle('active');
+        container.classList.toggle('active');
+
+        // Charger les donnees au premier clic
+        if (container.classList.contains('active') && !eventsData) {
+            loadEventsData();
+        }
+    });
+
+    // Charger les donnees des evenements
+    async function loadEventsData() {
+        try {
+            const response = await fetch('/api/events/summary');
+            const result = await response.json();
+            if (result.success) {
+                eventsData = result.data;
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement des evenements:', error);
+        }
+    }
+
+    // Gerer les clics sur les questions
+    questionButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const questionKey = this.dataset.question;
+            const questionText = this.textContent;
+
+            // Ajouter la question de l'utilisateur
+            addMessage(questionText, 'user');
+
+            // Afficher l'indicateur de frappe
+            showTypingIndicator();
+
+            // Repondre apres un delai
+            setTimeout(() => {
+                hideTypingIndicator();
+                const response = generateResponse(questionKey);
+                addMessage(response, 'bot');
+            }, 800);
+        });
+    });
+
+    function addMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}`;
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble';
+        bubble.innerHTML = text;
+
+        messageDiv.appendChild(bubble);
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = '<div class="message-bubble typing-indicator"><span></span><span></span><span></span></div>';
+        messagesContainer.appendChild(typingDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        const typing = document.getElementById('typing-indicator');
+        if (typing) typing.remove();
+    }
+
+    function generateResponse(questionKey) {
+        if (!eventsData) {
+            return "Je charge les informations, veuillez reessayer dans quelques instants.";
+        }
+
+        switch (questionKey) {
+            case 'upcoming':
+                if (eventsData.upcoming.count === 0) {
+                    return "Il n'y a pas d'evenements a venir pour le moment.";
+                }
+                let upcomingHtml = `Il y a <strong>${eventsData.upcoming.count}</strong> evenement(s) a venir :<br><br>`;
+                eventsData.upcoming.events.forEach(event => {
+                    upcomingHtml += `<div class="event-card-mini">
+                        <h4>${event.title}</h4>
+                        <p>${event.dateStart} - ${event.city}, ${event.country}</p>
+                    </div>`;
+                });
+                return upcomingHtml;
+
+            case 'ongoing':
+                if (eventsData.ongoing.count === 0) {
+                    return "Il n'y a pas d'evenements en cours actuellement.";
+                }
+                let ongoingHtml = `Il y a <strong>${eventsData.ongoing.count}</strong> evenement(s) en cours :<br><br>`;
+                eventsData.ongoing.events.forEach(event => {
+                    ongoingHtml += `<div class="event-card-mini">
+                        <h4>${event.title}</h4>
+                        <p>${event.dateStart} - ${event.city}, ${event.country}</p>
+                    </div>`;
+                });
+                return ongoingHtml;
+
+            case 'past':
+                if (eventsData.past.count === 0) {
+                    return "Il n'y a pas d'evenements passes enregistres.";
+                }
+                let pastHtml = `Il y a <strong>${eventsData.past.count}</strong> evenement(s) passe(s) :<br><br>`;
+                eventsData.past.events.forEach(event => {
+                    pastHtml += `<div class="event-card-mini">
+                        <h4>${event.title}</h4>
+                        <p>${event.dateStart} - ${event.city}, ${event.country}</p>
+                    </div>`;
+                });
+                return pastHtml;
+
+            case 'register':
+                return `Pour vous inscrire a un evenement :<br><br>
+                    <strong>1.</strong> Connectez-vous ou creez un compte<br>
+                    <strong>2.</strong> Parcourez les evenements disponibles<br>
+                    <strong>3.</strong> Cliquez sur l'evenement qui vous interesse<br>
+                    <strong>4.</strong> Cliquez sur "S'inscrire a cet evenement"<br><br>
+                    Vous recevrez une confirmation de votre inscription.`;
+
+            case 'm2i_location':
+                return `<strong>M2I Formation Schiltigheim</strong><br><br>
+                    Adresse : 67300 Schiltigheim, France<br><br>
+                    <strong>Coordonnees GPS :</strong><br>
+                    Latitude : 48.6159<br>
+                    Longitude : 7.7458<br><br>
+                    C'est le lieu de la soutenance CDA de Koffi Hamenou !`;
+
+            default:
+                return "Je n'ai pas compris votre question. Veuillez choisir parmi les options proposees.";
+        }
+    }
+});
+</script>

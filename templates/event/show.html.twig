@@ -2,6 +2,25 @@
 
 {% block title %}{{ event.title }}{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #event-map {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .participant-marker {
+            background: #DC2626;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
     <div class="container mt-5">
         <h1>{{ event.title }}</h1>
@@ -26,13 +45,13 @@
 
                 <h4>Informations pratiques</h4>
                 <ul class="list-unstyled">
-                    <li><strong> Date de début :</strong> {{ event.dateStart|date('d/m/Y à H:i') }}</li>
-                    <li><strong> Date de fin :</strong> {{ event.dateEnd|date('d/m/Y à H:i') }}</li>
+                    <li><strong> Date de debut :</strong> {{ event.dateStart|date('d/m/Y a H:i') }}</li>
+                    <li><strong> Date de fin :</strong> {{ event.dateEnd|date('d/m/Y a H:i') }}</li>
                     <li><strong> Lieu :</strong> {{ event.fullAddress }}</li>
                     <li><strong> Organisateur :</strong> {{ event.organizer }}</li>
                     <li><strong> Places disponibles :</strong>
                         {% if event.availableSeats is null %}
-                            Illimitées
+                            Illimitees
                         {% else %}
                             {{ event.availableSeats }} / {{ event.maxParticipants }}
                         {% endif %}
@@ -43,6 +62,29 @@
                     </span>
                     </li>
                 </ul>
+
+                {# Carte de localisation #}
+                <h4 class="mt-4">Localisation</h4>
+                <div id="event-map"></div>
+
+                {# Stocker les donnees pour la carte #}
+                <script id="map-data" type="application/json">
+                {
+                    "eventAddress": {{ event.fullAddress|json_encode|raw }},
+                    "eventCity": {{ event.city|json_encode|raw }},
+                    "participants": [
+                        {% for registration in event.registrations %}
+                            {% if registration.latitude and registration.longitude %}
+                            {
+                                "name": {{ registration.user.fullName|json_encode|raw }},
+                                "lat": {{ registration.latitude }},
+                                "lng": {{ registration.longitude }}
+                            }{% if not loop.last %},{% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    ]
+                }
+                </script>
             </div>
 
             <div class="col-md-4">
@@ -131,4 +173,80 @@
             </div>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mapContainer = document.getElementById('event-map');
+        if (!mapContainer) return;
+
+        const mapDataScript = document.getElementById('map-data');
+        if (!mapDataScript) return;
+
+        let mapData;
+        try {
+            mapData = JSON.parse(mapDataScript.textContent);
+        } catch (e) {
+            console.error('Erreur lors du parsing des donnees de la carte:', e);
+            return;
+        }
+
+        // Coordonnees par defaut (M2I Schiltigheim)
+        const defaultLat = 48.6159;
+        const defaultLng = 7.7458;
+
+        // Chercher les coordonnees des participants ou utiliser les coordonnees par defaut
+        let centerLat = defaultLat;
+        let centerLng = defaultLng;
+
+        if (mapData.participants && mapData.participants.length > 0) {
+            // Utiliser les coordonnees du premier participant
+            centerLat = parseFloat(mapData.participants[0].lat);
+            centerLng = parseFloat(mapData.participants[0].lng);
+        }
+
+        // Initialiser la carte
+        const map = L.map('event-map').setView([centerLat, centerLng], 14);
+
+        // Ajouter le fond de carte OpenStreetMap
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Ajouter un marqueur pour le lieu de l'evenement
+        const eventMarker = L.marker([centerLat, centerLng]).addTo(map);
+        eventMarker.bindPopup('<strong>' + mapData.eventAddress + '</strong>').openPopup();
+
+        // Ajouter des marqueurs pour chaque participant avec localisation
+        if (mapData.participants && mapData.participants.length > 0) {
+            const bounds = L.latLngBounds([[centerLat, centerLng]]);
+
+            mapData.participants.forEach(function(participant) {
+                const lat = parseFloat(participant.lat);
+                const lng = parseFloat(participant.lng);
+
+                // Creer un marqueur personnalise pour les participants
+                const participantIcon = L.divIcon({
+                    className: 'participant-marker',
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+
+                const marker = L.marker([lat, lng], {icon: participantIcon}).addTo(map);
+                marker.bindPopup('<strong>Participant:</strong> ' + participant.name);
+
+                bounds.extend([lat, lng]);
+            });
+
+            // Ajuster la vue pour inclure tous les marqueurs
+            if (mapData.participants.length > 1) {
+                map.fitBounds(bounds, {padding: [30, 30]});
+            }
+        }
+    });
+    </script>
 {% endblock %}

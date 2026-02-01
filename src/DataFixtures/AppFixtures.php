@@ -65,6 +65,7 @@ class AppFixtures extends Fixture
             ['email' => 'emma.robert@example.com', 'firstName' => 'Emma', 'lastName' => 'Robert'],
             ['email' => 'thomas.richard@example.com', 'firstName' => 'Thomas', 'lastName' => 'Richard'],
             ['email' => 'julie.moreau@example.com', 'firstName' => 'Julie', 'lastName' => 'Moreau'],
+            ['email' => 'koffi@gmail.com', 'firstName' => 'Koffi', 'lastName' => 'Hamenou'],
         ];
 
         foreach ($standardUsers as $userData) {
@@ -269,6 +270,22 @@ class AppFixtures extends Fixture
                 'categoryIndex' => 2, // Sensibilisation
                 'status' => 'cancelled',
             ],
+            // === SOUTENANCE CDA - Koffi Hamenou ===
+            [
+                'title' => 'Soutenance CDA - Koffi Hamenou - Présentation appli humanitaire TheCrossLove',
+                'description' => 'Soutenance du titre professionnel Concepteur Développeur d\'Applications de Koffi Hamenou. Présentation de l\'application TheCrossLove, une plateforme de gestion d\'événements humanitaires. Démonstration des fonctionnalités développées avec Symfony 7.3, PHP 8.2, Doctrine ORM et MySQL 8.0. Cette application permet aux utilisateurs de créer et gérer des événements humanitaires, de s\'inscrire aux événements, et aux administrateurs de gérer les participants et les catégories d\'événements. Architecture MVC complète avec système d\'authentification, gestion des rôles, et intégration de cartes interactives.',
+                'dateStart' => new \DateTime('2026-02-01 21:00'),
+                'dateEnd' => new \DateTime('2026-02-04 17:00'),
+                'address' => 'M2I Formation',
+                'postalCode' => '67300',
+                'city' => 'Schiltigheim',
+                'country' => 'France',
+                'organizer' => 'M2I Formation Strasbourg',
+                'maxParticipants' => 20,
+                'categoryIndex' => 0, // Conférences
+                'status' => 'active',
+                'image' => 'soutenance-cda.jpg',
+            ],
         ];
 
         $events = [];
@@ -289,6 +306,9 @@ class AppFixtures extends Fixture
             $event->setCategory($categories[$eventData['categoryIndex']]);
             $event->setCreatedBy($admin);
             $event->setStatus($eventData['status'] ?? 'active');
+            if (isset($eventData['image'])) {
+                $event->setImage($eventData['image']);
+            }
             $event->computeSlug($this->slugger);
 
             $manager->persist($event);
@@ -302,6 +322,24 @@ class AppFixtures extends Fixture
     {
         // On retire l'admin du tableau des utilisateurs standards
         $standardUsers = array_slice($users, 1);
+
+        // Trouver l'utilisateur Koffi et l'événement de soutenance
+        $koffiUser = null;
+        $soutenanceEvent = null;
+
+        foreach ($standardUsers as $user) {
+            if ($user->getEmail() === 'koffi@gmail.com') {
+                $koffiUser = $user;
+                break;
+            }
+        }
+
+        foreach ($events as $event) {
+            if (str_contains($event->getTitle(), 'Soutenance CDA - Koffi Hamenou')) {
+                $soutenanceEvent = $event;
+                break;
+            }
+        }
 
         // Pour chaque événement, on inscrit un nombre aléatoire d'utilisateurs
         foreach ($events as $event) {
@@ -330,6 +368,22 @@ class AppFixtures extends Fixture
 
                 $manager->persist($registration);
             }
+        }
+
+        // Inscription spéciale de Koffi à l'événement de soutenance avec coordonnées GPS
+        if ($koffiUser && $soutenanceEvent) {
+            $koffiRegistration = new ToRegister();
+            $koffiRegistration->setUser($koffiUser);
+            $koffiRegistration->setEvent($soutenanceEvent);
+            $koffiRegistration->setStatus('confirmed');
+            $koffiRegistration->setWhatsappNumber('+33641154337');
+            // Coordonnées GPS de M2I Schiltigheim
+            $koffiRegistration->setLatitude('48.6159');
+            $koffiRegistration->setLongitude('7.7458');
+            $koffiRegistration->setLocationUpdatedAt(new \DateTime());
+            $koffiRegistration->setRegisteredAt(new \DateTime());
+
+            $manager->persist($koffiRegistration);
         }
     }
 }
