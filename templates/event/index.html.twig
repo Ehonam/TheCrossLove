@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Accueil - TheCrossLove{% endblock %}
+{% block title %}Événements - TheCrossLove{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -38,6 +38,7 @@
             transition: all 0.2s;
             font-size: 0.875rem;
             font-weight: 500;
+            text-decoration: none;
         }
 
         .filter-btn:hover,
@@ -194,23 +195,19 @@
             <h2 class="filters-title">Filtres</h2>
 
             <div class="search-bar">
-                <input type="text" class="search-input" placeholder="Rechercher un événement..." id="search-input">
+                <input type="text" class="search-input" placeholder="Rechercher un événement..." id="search-input" value="{{ current_search ?? '' }}">
+                <select class="sort-select" id="sort-select">
+                    <option value="date" {{ current_sort == 'date' ? 'selected' : '' }}>Trier par: Date</option>
+                    <option value="name" {{ current_sort == 'name' ? 'selected' : '' }}>Trier par: Nom</option>
+                    <option value="category" {{ current_sort == 'category' ? 'selected' : '' }}>Trier par: Catégorie</option>
+                </select>
             </div>
 
             <div class="filter-group">
-<<<<<<< Updated upstream
-                <button class="filter-btn active" data-category="all">Tous les evenements</button>
-                {% if categories is defined %}
-                    {% for category in categories %}
-                        <button class="filter-btn" data-category="{{ category.name }}">{{ category.name }}</button>
-                    {% endfor %}
-                {% endif %}
-=======
-                <button class="filter-btn active" data-category="all">Tous les événements</button>
+                <a href="{{ path('default_event_index') }}" class="filter-btn {{ current_category is null ? 'active' : '' }}">Tous les événements</a>
                 {% for category in categories %}
-                    <button class="filter-btn" data-category="{{ category.name }}">{{ category.name }}</button>
+                    <a href="{{ path('default_event_index', {'category': category}) }}" class="filter-btn {{ current_category == category ? 'active' : '' }}">{{ category }}</a>
                 {% endfor %}
->>>>>>> Stashed changes
             </div>
         </div>
 
@@ -219,11 +216,7 @@
             {% if events is defined and events|length > 0 %}
                 {% for event in events %}
                     <a href="{{ path('default_event_show', {'id': event.id}) }}" style="text-decoration: none; color: inherit;">
-<<<<<<< Updated upstream
-                        <div class="event-card" data-category="{{ event.category ? event.category.name : 'Autre' }}">
-=======
-                        <div class="event-card" data-category="{{ event.category ? event.category.name : '' }}">
->>>>>>> Stashed changes
+                        <div class="event-card" data-category="{{ event.category }}">
                             {% if event.image %}
                                 <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.title }}" class="event-image">
                             {% else %}
@@ -231,11 +224,7 @@
                             {% endif %}
 
                             <div class="event-content">
-<<<<<<< Updated upstream
-                                <span class="event-category">{{ event.category ? event.category.name : 'Autre' }}</span>
-=======
-                                <span class="event-category">{{ event.category ? event.category.name : 'Sans catégorie' }}</span>
->>>>>>> Stashed changes
+                                <span class="event-category">{{ event.category }}</span>
                                 <h3 class="event-title">{{ event.title }}</h3>
                                 <p class="event-description">{{ event.description|slice(0, 100) }}...</p>
 
@@ -274,25 +263,6 @@
     {{ parent() }}
 
     <script>
-        // Filter functionality
-        document.querySelectorAll('.filter-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-
-                const category = this.dataset.category;
-                const cards = document.querySelectorAll('.event-card');
-
-                cards.forEach(card => {
-                    if (category === 'all' || card.dataset.category === category) {
-                        card.parentElement.style.display = 'block';
-                    } else {
-                        card.parentElement.style.display = 'none';
-                    }
-                });
-            });
-        });
-
         // Search functionality
         document.getElementById('search-input').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
@@ -308,6 +278,14 @@
                     card.parentElement.style.display = 'none';
                 }
             });
+        });
+
+        // Sort functionality
+        document.getElementById('sort-select').addEventListener('change', function(e) {
+            const sort = e.target.value;
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', sort);
+            window.location.href = url.toString();
         });
     </script>
 {% endblock %}

@@ -150,6 +150,33 @@ After any code change, verify:
 - **Form CSRF**: Never disable CSRF protection in forms
 - **Slugs**: Let Gedmo/Sluggable auto-generate, don't set manually
 - **Passwords**: Always use `UserPasswordHasherInterface`, never plain text
+- **maxParticipants null**: Means unlimited, not zero - always check with `=== null`
+- **Date validation**: `dateStart > now` only validated on create, not update
+- **Cascade remove**: Event deletion cascades to ToRegister automatically
+
+## Learning from Errors
+
+Document errors here after each bug fix to avoid repeating them.
+
+### Doctrine Errors
+- **LazyInitializationException**: Always fetch relations in DQL or use `fetch: EAGER`
+- **UniqueConstraintViolation on ToRegister**: Check `isUserRegistered()` before persist
+- **Schema out of sync**: Run `doctrine:migrations:migrate` after entity changes
+
+### Form Errors
+- **Invalid CSRF token**: Never disable CSRF, clear cache if persistent
+- **Form not submitted**: Check `$form->handleRequest($request)` is called
+- **Validation groups**: Use groups for conditional validation (create vs update)
+
+### Security Errors
+- **Access denied on admin routes**: Verify user has ROLE_ADMIN, not just ROLE_USER
+- **Session lost after redirect**: Check cookie domain in production
+- **Password not matching**: Always use `UserPasswordHasherInterface` for comparison
+
+### Template Errors
+- **Undefined variable in Twig**: Pass all required variables from controller
+- **Asset not found**: Run `assets:install` and check `public/` directory
+- **Translation missing**: Check `translations/` files and locale config
 
 ## Key Routes Reference
 
