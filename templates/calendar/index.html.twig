@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Calendrier - EventHub{% endblock %}
+{% block title %}Calendrier - TheCrossLove{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -95,27 +95,30 @@
         }
 
         .calendar-day.today {
+            outline: 3px solid var(--primary-red);
+            outline-offset: -3px;
+            font-weight: 600;
+        }
+
+        .calendar-day.has-events {
             background-color: var(--primary-red);
             color: var(--white);
             font-weight: 600;
         }
 
-        .calendar-day.has-events {
-            position: relative;
+        .calendar-day.has-events:hover {
+            background-color: var(--primary-red-hover);
         }
 
-        .calendar-day.has-events::after {
-            content: '';
-            position: absolute;
-            bottom: 4px;
-            width: 4px;
-            height: 4px;
-            border-radius: 50%;
+        .calendar-day.today.has-events {
             background-color: var(--primary-red);
+            color: var(--white);
+            outline: 3px solid var(--text-dark);
         }
 
-        .calendar-day.today.has-events::after {
-            background-color: var(--white);
+        .calendar-day.selected {
+            outline: 3px solid var(--text-dark) !important;
+            outline-offset: -3px;
         }
 
         .calendar-summary {
@@ -319,10 +322,22 @@
   {% block javascripts %}
       {{ parent() }}
       <script>
+        // Récupérer les dates des événements depuis le DOM
+        const eventDates = [];
+        document.querySelectorAll('.event-item').forEach(event => {
+            const date = event.dataset.date;
+            if (date && !eventDates.includes(date)) {
+                eventDates.push(date);
+            }
+        });
 
         // Calendar functionality
         let currentDate = new Date();
         const today = new Date();
+        let selectedDateGlobal = null;
+
+        // Stocker le HTML original des événements
+        const originalEventsHTML = document.getElementById('events-list').innerHTML;
 
         function renderCalendar() {
             const year = currentDate.getFullYear();
@@ -337,6 +352,16 @@
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+            // Count events this month
+            let eventsThisMonth = 0;
+            eventDates.forEach(dateStr => {
+                const eventDate = new Date(dateStr);
+                if (eventDate.getMonth() === month && eventDate.getFullYear() === year) {
+                    eventsThisMonth++;
+                }
+            });
+            document.getElementById('calendar-summary').textContent = `${eventsThisMonth} événement(s) ce mois`;
 
             // Clear calendar
             const calendarDays = document.getElementById('calendar-days');
@@ -356,6 +381,14 @@
                 day.className = 'calendar-day';
                 day.textContent = i;
 
+                // Format date for comparison (YYYY-MM-DD)
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                // Check if this date has events
+                if (eventDates.includes(dateStr)) {
+                    day.classList.add('has-events');
+                }
+
                 // Check if today
                 if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) {
                     day.classList.add('today');
@@ -363,19 +396,22 @@
 
                 // Add click event
                 day.addEventListener('click', function() {
-                    document.querySelectorAll('.calendar-day').forEach(d => d.style.outline = 'none');
-                    this.style.outline = '2px solid var(--primary-red)';
+                    // Remove selected class from all days
+                    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
+                    this.classList.add('selected');
 
                     const selectedDate = new Date(year, month, i);
-                    const dateStr = selectedDate.toLocaleDateString('fr-FR', {
+                    selectedDateGlobal = selectedDate;
+
+                    const dateStrFormatted = selectedDate.toLocaleDateString('fr-FR', {
                         weekday: 'long',
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
                     });
-                    document.getElementById('selected-date').textContent = dateStr.charAt(0).toUpperCase() + dateStr.slice(1);
+                    document.getElementById('selected-date').textContent = dateStrFormatted.charAt(0).toUpperCase() + dateStrFormatted.slice(1);
 
-                    // Filter events (in real app, this would be an AJAX call)
+                    // Filter events
                     filterEventsByDate(selectedDate);
                 });
 
@@ -394,31 +430,56 @@
         }
 
         function filterEventsByDate(date) {
-            const dateStr = date.toISOString().split('T')[0];
+            const year = date.getFullYear();
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+            // Restore original HTML first
+            document.getElementById('events-list').innerHTML = originalEventsHTML;
+
             const events = document.querySelectorAll('.event-item');
             let visibleCount = 0;
 
             events.forEach(event => {
                 const eventDate = event.dataset.date;
                 if (eventDate === dateStr) {
-                    event.parentElement.style.display = 'block';
+                    event.closest('a').style.display = 'block';
                     visibleCount++;
                 } else {
-                    event.parentElement.style.display = 'none';
+                    event.closest('a').style.display = 'none';
                 }
             });
 
-            // Show/hide no events message
-            const noEventsDiv = document.querySelector('.no-events');
-            if (visibleCount === 0 && !noEventsDiv) {
-                document.getElementById('events-list').innerHTML = `
-                <div class="no-events">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                    </svg>
-                    <p>Aucun événement pour cette date</p>
-                </div>
-            `;
+            // Show no events message if needed
+            if (visibleCount === 0) {
+                // Hide all event links and show message
+                document.querySelectorAll('.event-item').forEach(event => {
+                    event.closest('a').style.display = 'none';
+                });
+
+                // Check if no-events div exists, if not create it
+                let noEventsDiv = document.querySelector('.no-events');
+                if (!noEventsDiv) {
+                    const eventsListDiv = document.getElementById('events-list');
+                    const noEventsHTML = `
+                        <div class="no-events">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            <p>Aucun événement pour cette date</p>
+                        </div>
+                    `;
+                    eventsListDiv.insertAdjacentHTML('beforeend', noEventsHTML);
+                } else {
+                    noEventsDiv.style.display = 'block';
+                }
+            } else {
+                // Hide the no-events message if events are found
+                const noEventsDiv = document.querySelector('.no-events');
+                if (noEventsDiv) {
+                    noEventsDiv.style.display = 'none';
+                }
             }
         }
 
@@ -434,5 +495,8 @@
 
         // Initial render
         renderCalendar();
+
+        // Initially show all events
+        document.getElementById('selected-date').textContent = 'Sélectionnez une date';
     </script>
 {% endblock %}

@@ -16,12 +16,21 @@ class DefaultController extends AbstractController
     #[Route('/', name: 'default_home')]
     public function index(EventRepository $eventRepository, CategoryRepository $categoryRepository): Response
     {
-        $events = $eventRepository->findAll();
-        $categories = $categoryRepository->findAll();
+        // Récupérer uniquement les événements actifs
+        $events = $eventRepository->findBy(['status' => 'active']);
+
+        // Récupérer les catégories des événements publiés (actifs)
+        $categoriesWithEvents = [];
+        foreach ($events as $event) {
+            $category = $event->getCategory();
+            if ($category && !isset($categoriesWithEvents[$category->getId()])) {
+                $categoriesWithEvents[$category->getId()] = $category;
+            }
+        }
 
         return $this->render('default/home.html.twig', [
             'events' => $events,
-            'categories' => $categories,
+            'categories' => array_values($categoriesWithEvents),
         ]);
     }
 
