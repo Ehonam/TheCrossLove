@@ -113,3 +113,54 @@ GitHub Actions workflow (`.github/ci.yml`):
 ## File Upload
 
 Event images stored in `public/uploads/events/`. Handle via Symfony's file upload system in forms.
+
+---
+
+## Demo Accounts
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Admin** | `admin@thecrosslove.com` | `admin123` |
+| **User** | `john.doe@example.com` | `password123` |
+
+## Quick Demo Setup
+
+```bash
+# One-liner to prepare demo environment
+docker-compose up -d && \
+php bin/console doctrine:database:create --if-not-exists && \
+php bin/console doctrine:migrations:migrate --no-interaction && \
+php bin/console doctrine:fixtures:load --no-interaction && \
+php bin/console cache:clear && \
+symfony server:start
+```
+
+## Verification Checklist
+
+After any code change, verify:
+- [ ] `php bin/phpunit` - All tests pass
+- [ ] `php bin/console lint:container` - Container valid
+- [ ] `php bin/console doctrine:schema:validate` - DB schema sync
+- [ ] `curl localhost:8000/health` - Health check OK
+
+## Common Mistakes to Avoid
+
+- **Doctrine Relations**: Always use `cascade: ['persist']` on OneToMany when needed
+- **Unique Constraints**: Check ToRegister (user+event) before INSERT
+- **Form CSRF**: Never disable CSRF protection in forms
+- **Slugs**: Let Gedmo/Sluggable auto-generate, don't set manually
+- **Passwords**: Always use `UserPasswordHasherInterface`, never plain text
+
+## Key Routes Reference
+
+| Route | URL | Access |
+|-------|-----|--------|
+| Home | `/` | Public |
+| Events List | `/event/` | Public |
+| Event Detail | `/event/{id}` | Public |
+| Login | `/login` | Public |
+| Register | `/register` | Public |
+| My Registrations | `/my-registrations` | ROLE_USER |
+| Admin Dashboard | `/admin/` | ROLE_ADMIN |
+| Admin Events | `/admin/events` | ROLE_ADMIN |
+| Health Check | `/health` | Public |
