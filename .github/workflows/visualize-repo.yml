@@ -1,32 +1,33 @@
-name: Generate Repository Visualization
+name: Generate Repo Visualization
+
+permissions:
+  contents: write
 
 on:
   push:
-    branches: [ main ]   # ou master, ou ta branche principale
+    branches: [ main ]
   pull_request:
-  workflow_dispatch:     # permet de lancer manuellement
+  workflow_dispatch:
 
 jobs:
-  build:
+  visualize:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4   # mise à jour 2026
+        uses: actions/checkout@v4
 
       - name: Generate visualization
-        uses: githubocto/repo-visualizer@main   # branche main pour la dernière version
+        uses: githubocto/repo-visualizer@main
         with:
-          output_file: diagram.svg          # nom du fichier généré
-          excluded_paths: "vendor/**,node_modules/**,var/**,public/build/**"   # ignore les gros dossiers Symfony
-          # Optionnel : theme: "dark" ou "light"
-          # max_depth: 5   (pour limiter la profondeur)
+          output_file: diagram.svg
+          excluded_paths: "vendor/**,var/**,node_modules/**,public/build/**,.idea/**,docker/**"
 
-      - name: Commit diagram if changed
+      - name: Commit and push diagram if changed
         run: |
-          git config --global user.name 'GitHub Action'
-          git config --global user.email 'action@github.com'
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'actions@github.com'
           git add diagram.svg || true
-          git commit -m "Update repo visualization" || echo "No changes to commit"
-          git push || echo "No push needed"
+          git commit -m "Update repo visualization diagram" || echo "No changes"
+          git push || echo "Already up to date"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
