@@ -120,8 +120,11 @@ Event images stored in `public/uploads/events/`. Handle via Symfony's file uploa
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | `admin@thecrosslove.com` | `admin123` |
+| **Admin** | `admin@thecrosslove.com` | `Th3Cr0ss!L0v3@2026#Adm1n$Secure!` |
 | **User** | `john.doe@example.com` | `password123` |
+
+> **Note sécurité ANSSI** : Le mot de passe admin respecte les recommandations ANSSI niveau maximal (25-30+ caractères).
+> L'utilisation d'un gestionnaire de mots de passe (Bitwarden, KeePass, 1Password) est fortement recommandée.
 
 ## Quick Demo Setup
 
@@ -187,7 +190,11 @@ Document errors here after each bug fix to avoid repeating them.
 | Event Detail | `/event/{id}` | Public |
 | Login | `/login` | Public |
 | Register | `/register` | Public |
+| Terms of Use | `/legal/terms` | Public |
+| Privacy Policy | `/legal/privacy` | Public |
 | My Registrations | `/my-registrations` | ROLE_USER |
 | Admin Dashboard | `/admin/` | ROLE_ADMIN |
 | Admin Events | `/admin/events` | ROLE_ADMIN |
+| Admin Event Map | `/admin/event/{id}/map` | ROLE_ADMIN |
+| API Participants Locations | `/api/events/{id}/participants/locations` | ROLE_ADMIN |
 | Health Check | `/health` | Public |

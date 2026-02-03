@@ -2,10 +2,12 @@
 
 namespace App\Controller\Api;
 
+use App\Entity\Event;
 use App\Repository\EventRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api')]
 class EventApiController extends AbstractController
@@ -120,6 +122,45 @@ class EventApiController extends AbstractController
                 'status' => $event->getComputedStatus(),
                 'statusLabel' => $event->getStatusLabel(),
             ],
+        ]);
+    }
+
+    /**
+     * Récupère les positions GPS des participants d'un événement (Admin uniquement)
+     */
+    #[Route('/events/{id}/participants/locations', name: 'api_event_participants_locations', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function participantsLocations(Event $event): JsonResponse
+    {
+        $participants = [];
+
+        foreach ($event->getRegistrations() as $registration) {
+            if ($registration->hasLocation()) {
+                $participants[] = [
+                    'id' => $registration->getId(),
+                    'name' => $registration->getUser()->getFullName(),
+                    'whatsapp' => $registration->getWhatsappNumber(),
+                    'whatsappLink' => $registration->getWhatsappLocationLink(),
+                    'lat' => (float) $registration->getLatitude(),
+                    'lng' => (float) $registration->getLongitude(),
+                    'updatedAt' => $registration->getLocationUpdatedAt()?->format('d/m/Y H:i'),
+                    'status' => $registration->getStatus(),
+                ];
+            }
+        }
+
+        return $this->json([
+            'success' => true,
+            'event' => [
+                'id' => $event->getId(),
+                'title' => $event->getTitle(),
+                'address' => $event->getFullAddress(),
+                'lat' => $event->getLatitude(),
+                'lng' => $event->getLongitude(),
+            ],
+            'participants' => $participants,
+            'totalParticipants' => $event->getParticipantCount(),
+            'participantsWithLocation' => count($participants),
         ]);
     }
 }

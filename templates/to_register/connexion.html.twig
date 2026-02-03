@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Connexion - EventHub{% endblock %}
+{% block title %}Connexion - TheCrossLove{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -153,7 +153,7 @@
                 </div>
 
                 <h1 class="auth-title">Connexion</h1>
-                <p class="auth-subtitle">Connectez-vous à votre compte EventHub</p>
+                <p class="auth-subtitle">Connectez-vous à votre compte TheCrossLove</p>
 
                 {% if error %}
                     <div style="padding: 1rem; background-color: #FEE2E2; border: 1px solid #FCA5A5; border-radius: 0.5rem; margin-bottom: 1.5rem;">
@@ -221,11 +221,11 @@
             const passwordInput = document.getElementById('password');
 
             if (type === 'admin') {
-                usernameInput.value = 'admin@eventhub.com';
-                passwordInput.value = 'admin123';
+                usernameInput.value = 'admin@thecrosslove.com';
+                passwordInput.value = 'Th3Cr0ss!L0v3@2026#Adm1n$Secure!';
             } else {
-                usernameInput.value = 'user@eventhub.com';
-                passwordInput.value = 'user123';
+                usernameInput.value = 'john.doe@example.com';
+                passwordInput.value = 'password123';
             }
         }
     </script>

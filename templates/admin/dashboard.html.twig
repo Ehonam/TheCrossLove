@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Administration - EventHub{% endblock %}
+{% block title %}Administration - TheCrossLove{% endblock %}
 
 {% block stylesheets %}
     {{ parent() }}
@@ -386,7 +386,11 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if event.maxParticipants %}
+                                {% if event.status == 'cancelled' %}
+                                    <span class="status-badge full">Annulé</span>
+                                {% elseif event.isPast %}
+                                    <span class="status-badge almost-full">Terminé</span>
+                                {% elseif event.maxParticipants %}
                                     {% set fillRate = (event.participantCount / event.maxParticipants) * 100 %}
                                     {% if fillRate >= 100 %}
                                         <span class="status-badge full">Complet</span>

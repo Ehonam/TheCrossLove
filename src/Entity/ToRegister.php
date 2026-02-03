@@ -181,9 +181,9 @@ class ToRegister
     public function getStatusLabel(): string
     {
         return match($this->status) {
-            'confirmed' => 'Confirme',
+            'confirmed' => 'Confirmé',
             'pending' => 'En attente',
-            'cancelled' => 'Annule',
+            'cancelled' => 'Annulé',
             default => 'Inconnu'
         };
     }

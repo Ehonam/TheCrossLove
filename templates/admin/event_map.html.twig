@@ -1,0 +1,377 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Carte des participants - {{ event.title }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <style>
+        #admin-map {
+            height: 70vh;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .map-legend {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-marker {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend-marker.event {
+            background: #3B82F6;
+            border: 3px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .legend-marker.participant {
+            background: #DC2626;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .participant-marker-icon {
+            background: #DC2626;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .event-marker-icon {
+            background: #3B82F6;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.4);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stats-card h3 {
+            font-size: 2rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .stats-card p {
+            margin: 0;
+            opacity: 0.9;
+        }
+
+        .participants-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .participant-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem;
+            border-bottom: 1px solid #e5e7eb;
+            transition: background-color 0.2s;
+        }
+
+        .participant-item:hover {
+            background-color: #f9fafb;
+        }
+
+        .participant-info {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .participant-meta {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .auto-refresh-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            background: #10B981;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .whatsapp-btn {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-decoration: none;
+        }
+
+        .whatsapp-btn:hover {
+            background: #128C7E;
+            color: white;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-1">Carte des participants</h1>
+                    <p class="text-muted mb-0">{{ event.title }}</p>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="auto-refresh-indicator">
+                        <span class="pulse-dot"></span>
+                        Actualisation toutes les 30 secondes
+                    </div>
+                    <a href="{{ path('admin_event_participants', {id: event.id}) }}" class="btn btn-outline-secondary">
+                        Retour à la liste
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            {# Légende #}
+            <div class="map-legend">
+                <div class="d-flex gap-4">
+                    <div class="legend-item">
+                        <span class="legend-marker event"></span>
+                        <span>Lieu de l'événement</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-marker participant"></span>
+                        <span>Participants avec GPS</span>
+                    </div>
+                </div>
+            </div>
+
+            {# Carte #}
+            <div id="admin-map"></div>
+        </div>
+
+        <div class="col-lg-3">
+            {# Stats #}
+            <div class="stats-card">
+                <h3 id="participants-with-gps">0</h3>
+                <p>Participants avec GPS</p>
+            </div>
+
+            <div class="stats-card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                <h3 id="total-participants">{{ event.participantCount }}</h3>
+                <p>Total participants</p>
+            </div>
+
+            {# Liste des participants #}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Participants localisés</h6>
+                </div>
+                <div class="card-body p-0 participants-list" id="participants-list">
+                    <div class="text-center py-4 text-muted">
+                        Chargement...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Données de l'événement #}
+<script id="event-data" type="application/json">
+{
+    "eventId": {{ event.id }},
+    "eventTitle": {{ event.title|json_encode|raw }},
+    "eventAddress": {{ event.fullAddress|json_encode|raw }},
+    "eventLat": {{ event.latitude|json_encode|raw }},
+    "eventLng": {{ event.longitude|json_encode|raw }}
+}
+</script>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Récupérer les données de l'événement
+        const eventDataScript = document.getElementById('event-data');
+        let eventData;
+        try {
+            eventData = JSON.parse(eventDataScript.textContent);
+        } catch (e) {
+            console.error('Erreur de parsing:', e);
+            return;
+        }
+
+        // Coordonnées par défaut
+        let centerLat = eventData.eventLat || 48.8566;
+        let centerLng = eventData.eventLng || 2.3522;
+
+        // Initialiser la carte
+        const map = L.map('admin-map').setView([centerLat, centerLng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Icône pour l'événement
+        const eventIcon = L.divIcon({
+            className: 'event-marker-icon',
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+        });
+
+        // Marqueur de l'événement
+        let eventMarker = null;
+        if (eventData.eventLat && eventData.eventLng) {
+            eventMarker = L.marker([eventData.eventLat, eventData.eventLng], {icon: eventIcon}).addTo(map);
+            eventMarker.bindPopup('<strong>Lieu de l\'événement</strong><br>' + eventData.eventAddress);
+        }
+
+        // Stockage des marqueurs participants
+        let participantMarkers = {};
+
+        // Fonction pour mettre à jour les participants
+        function updateParticipants() {
+            fetch('/api/events/' + eventData.eventId + '/participants/locations')
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success) return;
+
+                    // Mettre à jour les stats
+                    document.getElementById('participants-with-gps').textContent = data.participantsWithLocation;
+                    document.getElementById('total-participants').textContent = data.totalParticipants;
+
+                    // Mettre à jour la liste
+                    const listContainer = document.getElementById('participants-list');
+                    if (data.participants.length === 0) {
+                        listContainer.innerHTML = '<div class="text-center py-4 text-muted">Aucun participant n\'a partagé sa position</div>';
+                    } else {
+                        let html = '';
+                        data.participants.forEach(p => {
+                            html += '<div class="participant-item" data-lat="' + p.lat + '" data-lng="' + p.lng + '">';
+                            html += '<div class="participant-info">';
+                            html += '<div class="participant-name">' + p.name + '</div>';
+                            html += '<div class="participant-meta">';
+                            if (p.updatedAt) {
+                                html += 'Mis à jour: ' + p.updatedAt;
+                            }
+                            html += '</div>';
+                            html += '</div>';
+                            if (p.whatsappLink) {
+                                html += '<a href="' + p.whatsappLink + '" target="_blank" class="whatsapp-btn">WhatsApp</a>';
+                            }
+                            html += '</div>';
+                        });
+                        listContainer.innerHTML = html;
+
+                        // Ajouter les événements de clic pour centrer sur le participant
+                        document.querySelectorAll('.participant-item').forEach(item => {
+                            item.style.cursor = 'pointer';
+                            item.addEventListener('click', function() {
+                                const lat = parseFloat(this.dataset.lat);
+                                const lng = parseFloat(this.dataset.lng);
+                                map.setView([lat, lng], 16);
+                            });
+                        });
+                    }
+
+                    // Mettre à jour les marqueurs sur la carte
+                    const participantIcon = L.divIcon({
+                        className: 'participant-marker-icon',
+                        iconSize: [14, 14],
+                        iconAnchor: [7, 7]
+                    });
+
+                    // IDs actuels
+                    const currentIds = data.participants.map(p => p.id);
+
+                    // Supprimer les marqueurs obsolètes
+                    Object.keys(participantMarkers).forEach(id => {
+                        if (!currentIds.includes(parseInt(id))) {
+                            map.removeLayer(participantMarkers[id]);
+                            delete participantMarkers[id];
+                        }
+                    });
+
+                    // Ajouter/mettre à jour les marqueurs
+                    data.participants.forEach(p => {
+                        if (participantMarkers[p.id]) {
+                            participantMarkers[p.id].setLatLng([p.lat, p.lng]);
+                        } else {
+                            const marker = L.marker([p.lat, p.lng], {icon: participantIcon}).addTo(map);
+                            let popupContent = '<strong>' + p.name + '</strong>';
+                            if (p.whatsapp) {
+                                popupContent += '<br>WhatsApp: ' + p.whatsapp;
+                            }
+                            if (p.updatedAt) {
+                                popupContent += '<br><small>Mis à jour: ' + p.updatedAt + '</small>';
+                            }
+                            marker.bindPopup(popupContent);
+                            participantMarkers[p.id] = marker;
+                        }
+                    });
+
+                    // Ajuster la vue si on a des coordonnées d'événement et des participants
+                    if (data.participants.length > 0 && eventData.eventLat && eventData.eventLng) {
+                        const bounds = L.latLngBounds([[eventData.eventLat, eventData.eventLng]]);
+                        data.participants.forEach(p => {
+                            bounds.extend([p.lat, p.lng]);
+                        });
+                        map.fitBounds(bounds, {padding: [50, 50]});
+                    }
+                })
+                .catch(err => console.error('Erreur:', err));
+        }
+
+        // Première mise à jour
+        updateParticipants();
+
+        // Rafraîchissement automatique toutes les 30 secondes
+        setInterval(updateParticipants, 30000);
+    });
+    </script>
+{% endblock %}

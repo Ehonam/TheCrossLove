@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Entity\Event;
 use App\Form\EventFormType;
 use App\Repository\EventRepository;
+use App\Service\GeocodingService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -70,7 +71,8 @@ class AdminController extends AbstractController
     public function newEvent(
         Request $request,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        GeocodingService $geocodingService
     ): Response {
         $event = new Event();
         $form = $this->createForm(EventFormType::class, $event);
@@ -82,6 +84,13 @@ class AdminController extends AbstractController
 
             // Générer le slug
             $event->computeSlug($slugger);
+
+            // Géocoder l'adresse de l'événement
+            $coords = $geocodingService->geocodeAddress($event->getFullAddress());
+            if ($coords) {
+                $event->setLatitude($coords['latitude']);
+                $event->setLongitude($coords['longitude']);
+            }
 
             // Gestion de l'upload d'image
             $imageFile = $form->get('imageFile')->getData();
@@ -121,7 +130,8 @@ class AdminController extends AbstractController
         Event $event,
         Request $request,
         EntityManagerInterface $entityManager,
-        SluggerInterface $slugger
+        SluggerInterface $slugger,
+        GeocodingService $geocodingService
     ): Response {
         $form = $this->createForm(EventFormType::class, $event);
         $form->handleRequest($request);
@@ -129,6 +139,13 @@ class AdminController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             // Régénérer le slug si le titre a changé
             $event->computeSlug($slugger);
+
+            // Géocoder l'adresse de l'événement si elle a changé
+            $coords = $geocodingService->geocodeAddress($event->getFullAddress());
+            if ($coords) {
+                $event->setLatitude($coords['latitude']);
+                $event->setLongitude($coords['longitude']);
+            }
 
             // Gestion de l'upload d'image
             $imageFile = $form->get('imageFile')->getData();
@@ -195,6 +212,14 @@ class AdminController extends AbstractController
         return $this->render('admin/event_participants.html.twig', [
             'event' => $event,
             'registrations' => $event->getRegistrations(),
+        ]);
+    }
+
+    #[Route('/event/{id}/map', name: 'admin_event_map')]
+    public function eventMap(Event $event): Response
+    {
+        return $this->render('admin/event_map.html.twig', [
+            'event' => $event,
         ]);
     }
 }

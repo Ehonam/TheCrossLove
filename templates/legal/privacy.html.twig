@@ -1,0 +1,235 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Politique de Confidentialité - TheCrossLove{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .legal-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .legal-content h1 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        .legal-content .update-date {
+            color: #6B7280;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .legal-content h2 {
+            color: #374151;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .legal-content h3 {
+            color: #4B5563;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .legal-content p, .legal-content li {
+            color: #4B5563;
+            line-height: 1.7;
+        }
+        .legal-content ul {
+            margin-bottom: 1rem;
+        }
+        .legal-content .info-box {
+            background-color: #DBEAFE;
+            border-left: 4px solid #3B82F6;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .legal-content .info-box strong {
+            color: #1E40AF;
+        }
+        .legal-content .security-box {
+            background-color: #D1FAE5;
+            border-left: 4px solid #10B981;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .legal-content .security-box strong {
+            color: #065F46;
+        }
+        .rights-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .rights-table th, .rights-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .rights-table th {
+            background-color: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5 mb-5">
+    <div class="legal-content">
+        <h1>Politique de Confidentialité</h1>
+        <p class="update-date">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+
+        <div class="info-box">
+            <strong>RGPD :</strong> Cette politique est conforme au Règlement Général sur la Protection des Données (UE) 2016/679.
+        </div>
+
+        <h2>1. Collecte des données</h2>
+
+        <h3>1.1 Données collectées</h3>
+        <ul>
+            <li><strong>Identifiants de connexion</strong> : email, mot de passe (hashé)</li>
+            <li><strong>Informations personnelles</strong> : nom, prénom</li>
+            <li><strong>Préférences</strong> : catégories d'événements favorites (optionnel)</li>
+            <li><strong>Localisation</strong> : pour les événements et inscriptions</li>
+            <li><strong>Numéro WhatsApp</strong> : pour la coordination des événements (optionnel)</li>
+            <li><strong>Historique d'activité</strong> : inscriptions aux événements</li>
+        </ul>
+
+        <h3>1.2 Données sensibles (Article 9 RGPD)</h3>
+        <p>Conformément au RGPD, nous traitons avec une protection particulière :</p>
+        <ul>
+            <li><strong>Les croyances religieuses</strong> : déduites des événements auxquels vous participez</li>
+            <li><strong>La géolocalisation en zones sensibles</strong> : protégée par chiffrement renforcé</li>
+        </ul>
+
+        <h2>2. Utilisation des données</h2>
+        <p>Les données sont utilisées pour :</p>
+        <ul>
+            <li>Fournir et améliorer nos services</li>
+            <li>Personnaliser l'expérience utilisateur</li>
+            <li>Permettre l'inscription et la gestion des événements</li>
+            <li>Assurer la sécurité de la plateforme</li>
+            <li>Respecter nos obligations légales</li>
+        </ul>
+
+        <h2>3. Protection des données</h2>
+
+        <div class="security-box">
+            <strong>Sécurité renforcée :</strong> Nos mesures de sécurité sont alignées sur les recommandations de l'ANSSI (Agence Nationale de la Sécurité des Systèmes d'Information).
+        </div>
+
+        <h3>3.1 Mesures techniques</h3>
+        <ul>
+            <li><strong>Chiffrement en transit</strong> : TLS 1.3 pour toutes les communications</li>
+            <li><strong>Chiffrement au repos</strong> : AES-256 pour les données sensibles</li>
+            <li><strong>Stockage séparé</strong> : les données sensibles sont isolées</li>
+            <li><strong>Authentification renforcée</strong> : MFA recommandé pour les administrateurs</li>
+        </ul>
+
+        <h3>3.2 Mots de passe</h3>
+        <ul>
+            <li><strong>Hashage</strong> : Argon2 (algorithme recommandé par l'ANSSI)</li>
+            <li><strong>Politique stricte</strong> : 25+ caractères pour les administrateurs</li>
+            <li><strong>Protection</strong> : verrouillage après 5 tentatives infructueuses</li>
+        </ul>
+
+        <h2>4. Partage des données</h2>
+
+        <h3>4.1 Absence de commercialisation</h3>
+        <p>Nous ne vendons, ne louons, ni ne partageons vos données personnelles à des fins commerciales.</p>
+
+        <h3>4.2 Sous-traitants</h3>
+        <p>Seuls les sous-traitants certifiés peuvent accéder aux données dans le cadre de leur mission :</p>
+        <ul>
+            <li><strong>Hébergement</strong> : Serveurs sécurisés en Europe</li>
+            <li><strong>Services email</strong> : Uniquement pour les notifications de service</li>
+        </ul>
+
+        <h3>4.3 Obligations légales</h3>
+        <p>Nous pouvons être amenés à communiquer des données en réponse à une requête judiciaire valide, conformément au droit applicable.</p>
+
+        <h2>5. Conservation des données</h2>
+        <table class="rights-table">
+            <thead>
+                <tr>
+                    <th>Type de données</th>
+                    <th>Durée de conservation</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Données de compte</td>
+                    <td>3 ans après dernière activité</td>
+                </tr>
+                <tr>
+                    <td>Données de connexion (logs)</td>
+                    <td>6 mois</td>
+                </tr>
+                <tr>
+                    <td>Données de géolocalisation</td>
+                    <td>Anonymisation après 1 an</td>
+                </tr>
+                <tr>
+                    <td>Inscriptions aux événements</td>
+                    <td>Durée de l'événement + 1 an</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>6. Vos droits (RGPD)</h2>
+        <p>Conformément au Règlement Général sur la Protection des Données, vous disposez des droits suivants :</p>
+
+        <table class="rights-table">
+            <thead>
+                <tr>
+                    <th>Droit</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Accès</strong></td>
+                    <td>Obtenir une copie de vos données personnelles</td>
+                </tr>
+                <tr>
+                    <td><strong>Rectification</strong></td>
+                    <td>Corriger des données inexactes ou incomplètes</td>
+                </tr>
+                <tr>
+                    <td><strong>Effacement</strong></td>
+                    <td>Demander la suppression de vos données ("droit à l'oubli")</td>
+                </tr>
+                <tr>
+                    <td><strong>Portabilité</strong></td>
+                    <td>Recevoir vos données dans un format structuré</td>
+                </tr>
+                <tr>
+                    <td><strong>Opposition</strong></td>
+                    <td>Vous opposer au traitement de vos données</td>
+                </tr>
+                <tr>
+                    <td><strong>Limitation</strong></td>
+                    <td>Demander la limitation du traitement</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>7. Contact</h2>
+        <p>Pour exercer vos droits ou pour toute question relative à la protection des données :</p>
+        <ul>
+            <li><strong>Email général</strong> : privacy@thecrosslove.com</li>
+            <li><strong>Délégué à la Protection des Données (DPO)</strong> : dpo@thecrosslove.com</li>
+        </ul>
+
+        <p>Vous pouvez également introduire une réclamation auprès de la CNIL (Commission Nationale de l'Informatique et des Libertés) : <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a></p>
+
+        <div class="mt-5 text-center">
+            <a href="{{ path('default_register') }}" class="btn btn-primary">Retour à l'inscription</a>
+            <a href="{{ path('app_legal_terms') }}" class="btn btn-outline-secondary ms-2">Conditions d'utilisation</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

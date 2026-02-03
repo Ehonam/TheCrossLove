@@ -87,6 +87,12 @@ class Event
     #[Assert\NotBlank(message: "Le pays est obligatoire")]
     private ?string $country = null;
 
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $latitude = null;
+
+    #[ORM\Column(type: Types::FLOAT, nullable: true)]
+    private ?float $longitude = null;
+
     #[ORM\Column(length: 160)]
     #[Assert\NotBlank(message: "Le nom de l'organisateur est obligatoire")]
     #[Assert\Length(
@@ -257,6 +263,28 @@ class Event
     public function setCountry(string $country): static
     {
         $this->country = $country;
+        return $this;
+    }
+
+    public function getLatitude(): ?float
+    {
+        return $this->latitude;
+    }
+
+    public function setLatitude(?float $latitude): static
+    {
+        $this->latitude = $latitude;
+        return $this;
+    }
+
+    public function getLongitude(): ?float
+    {
+        return $this->longitude;
+    }
+
+    public function setLongitude(?float $longitude): static
+    {
+        $this->longitude = $longitude;
         return $this;
     }
 

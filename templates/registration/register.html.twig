@@ -38,7 +38,10 @@
 
                         <div class="mb-3 form-check">
                             {{ form_widget(registrationForm.agreeTerms, {'attr': {'class': 'form-check-input'}}) }}
-                            {{ form_label(registrationForm.agreeTerms, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                            <label class="form-check-label" for="{{ registrationForm.agreeTerms.vars.id }}">
+                                J'accepte les <a href="{{ path('app_legal_terms') }}" target="_blank" class="text-primary">Conditions Générales d'Utilisation</a>
+                                et la <a href="{{ path('app_legal_privacy') }}" target="_blank" class="text-primary">Politique de Confidentialité</a>
+                            </label>
                             {{ form_errors(registrationForm.agreeTerms) }}
                         </div>
 

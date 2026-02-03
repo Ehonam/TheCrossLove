@@ -1,0 +1,141 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Conditions Générales d'Utilisation - TheCrossLove{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .legal-content {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .legal-content h1 {
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        .legal-content .update-date {
+            color: #6B7280;
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+        .legal-content h2 {
+            color: #374151;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .legal-content h3 {
+            color: #4B5563;
+            margin-top: 1.5rem;
+            margin-bottom: 0.75rem;
+        }
+        .legal-content p, .legal-content li {
+            color: #4B5563;
+            line-height: 1.7;
+        }
+        .legal-content ul {
+            margin-bottom: 1rem;
+        }
+        .legal-content .warning-box {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .legal-content .warning-box strong {
+            color: #92400E;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container mt-5 mb-5">
+    <div class="legal-content">
+        <h1>Conditions Générales d'Utilisation</h1>
+        <p class="update-date">Dernière mise à jour : {{ "now"|date("d/m/Y") }}</p>
+
+        <h2>1. Acceptation des conditions</h2>
+        <p>En créant un compte sur TheCrossLove, vous acceptez sans réserve les présentes Conditions d'Utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser notre plateforme.</p>
+
+        <h2>2. Description du service</h2>
+        <p>TheCrossLove est une plateforme permettant de partager et découvrir des événements à caractère religieux et humanitaire. Notre mission est de rassembler les communautés autour de valeurs de partage, d'entraide et de foi.</p>
+
+        <h2>3. Comptes utilisateurs</h2>
+
+        <h3>3.1 Création de compte</h3>
+        <ul>
+            <li>Vous devez fournir des informations exactes et complètes</li>
+            <li>Vous devez être âgé d'au moins 16 ans pour créer un compte</li>
+            <li>Les comptes administrateurs sont soumis à des exigences de sécurité renforcées</li>
+            <li>Vous êtes responsable de la confidentialité de vos identifiants</li>
+        </ul>
+
+        <h3>3.2 Sécurité</h3>
+        <ul>
+            <li>Les mots de passe administrateur doivent contenir au minimum 25 caractères (conformité ANSSI)</li>
+            <li>L'utilisation d'un gestionnaire de mots de passe est fortement recommandée</li>
+            <li>Toute activité suspecte doit être signalée immédiatement</li>
+        </ul>
+
+        <h2>4. Données sensibles</h2>
+
+        <div class="warning-box">
+            <strong>Attention :</strong> TheCrossLove traite des données particulièrement sensibles. Nous accordons une importance capitale à leur protection.
+        </div>
+
+        <h3>4.1 Données religieuses</h3>
+        <p>Les informations à caractère religieux partagées sur la plateforme doivent respecter :</p>
+        <ul>
+            <li>La liberté de culte</li>
+            <li>Le respect de toutes les confessions</li>
+            <li>L'absence de prosélytisme agressif</li>
+        </ul>
+
+        <h3>4.2 Géolocalisation en zones sensibles</h3>
+        <ul>
+            <li>La publication de localisations précises en zones de conflit est strictement réglementée</li>
+            <li>Les données doivent être anonymisées lorsque nécessaire</li>
+            <li>La sécurité des personnes prime sur toute autre considération</li>
+        </ul>
+
+        <h2>5. Responsabilités</h2>
+
+        <h3>5.1 Contenu publié</h3>
+        <p>Vous êtes seul responsable du contenu que vous publiez et vous garantissez que :</p>
+        <ul>
+            <li>Il ne contient pas d'informations diffamatoires</li>
+            <li>Il respecte les droits d'auteur</li>
+            <li>Il ne met pas en danger la sécurité des personnes</li>
+        </ul>
+
+        <h3>5.2 Restrictions</h3>
+        <p>Il est interdit de :</p>
+        <ul>
+            <li>Publier des informations permettant d'identifier des personnes en danger</li>
+            <li>Partager des contenus incitant à la violence ou à la haine</li>
+            <li>Utiliser la plateforme à des fins commerciales non autorisées</li>
+            <li>Tenter de contourner les mesures de sécurité</li>
+        </ul>
+
+        <h2>6. Propriété intellectuelle</h2>
+        <p>Les contenus publiés restent la propriété de leurs auteurs, mais l'utilisation de la plateforme implique une licence d'utilisation non exclusive pour TheCrossLove permettant d'afficher et de promouvoir ces contenus.</p>
+
+        <h2>7. Modification des conditions</h2>
+        <p>Nous nous réservons le droit de modifier ces conditions. Les utilisateurs seront informés par email 30 jours avant l'application des nouvelles conditions. L'utilisation continue de la plateforme après cette période vaut acceptation des nouvelles conditions.</p>
+
+        <h2>8. Contact</h2>
+        <p>Pour toute question concernant ces conditions :</p>
+        <ul>
+            <li>Email : contact@thecrosslove.com</li>
+        </ul>
+
+        <div class="mt-5 text-center">
+            <a href="{{ path('default_register') }}" class="btn btn-primary">Retour à l'inscription</a>
+            <a href="{{ path('app_legal_privacy') }}" class="btn btn-outline-secondary ms-2">Politique de confidentialité</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

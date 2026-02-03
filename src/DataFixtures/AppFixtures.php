@@ -45,13 +45,14 @@ class AppFixtures extends Fixture
     {
         $users = [];
 
-        // Utilisateur admin
+        // Utilisateur admin avec mot de passe ANSSI niveau maximal (25+ caractères)
         $admin = new User();
         $admin->setEmail('admin@thecrosslove.com');
         $admin->setFirstName('Admin');
         $admin->setLastName('Système');
         $admin->setRoles(['ROLE_ADMIN']);
-        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'admin123'));
+        // Mot de passe conforme ANSSI niveau maximal : 32 caractères
+        $admin->setPassword($this->passwordHasher->hashPassword($admin, 'Th3Cr0ss!L0v3@2026#Adm1n$Secure!'));
         $manager->persist($admin);
         $users['admin'] = $admin;
 

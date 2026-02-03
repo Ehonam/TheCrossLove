@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Event;
 use App\Entity\ToRegister;
+use App\Form\EventRegistrationFormType;
 use App\Repository\EventRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -71,14 +72,18 @@ class EventController extends AbstractController
         $toRegister->setEvent($event);
         $toRegister->setUser($this->getUser());
 
-        // Formulaire simple (juste un bouton submit)
-        $form = $this->createFormBuilder($toRegister)
-            ->getForm();
+        // Formulaire avec WhatsApp et GPS
+        $form = $this->createForm(EventRegistrationFormType::class, $toRegister);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($event->getAvailableSeats() > 0) {
+            if ($event->getAvailableSeats() === null || $event->getAvailableSeats() > 0) {
+                // Mettre à jour la date de mise à jour de la localisation si fournie
+                if ($toRegister->getLatitude() && $toRegister->getLongitude()) {
+                    $toRegister->setLocationUpdatedAt(new \DateTime());
+                }
+
                 $entityManager->persist($toRegister);
                 $entityManager->flush();
 

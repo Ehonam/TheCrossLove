@@ -38,7 +38,9 @@
         <div class="row">
             <div class="col-md-8">
                 {% if event.image %}
-                    <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.title }}" class="img-fluid mb-3">
+                    <img src="{{ asset('uploads/events/' ~ event.image) }}" alt="{{ event.title }}" class="img-fluid rounded-3 shadow mb-3">
+                {% else %}
+                    <img src="{{ asset('uploads/events/default-event.svg') }}" alt="Image par défaut" class="img-fluid rounded-3 shadow mb-3">
                 {% endif %}
 
                 <p>{{ event.description }}</p>
@@ -72,6 +74,8 @@
                 {
                     "eventAddress": {{ event.fullAddress|json_encode|raw }},
                     "eventCity": {{ event.city|json_encode|raw }},
+                    "eventLat": {{ event.latitude|json_encode|raw }},
+                    "eventLng": {{ event.longitude|json_encode|raw }},
                     "participants": [
                         {% for registration in event.registrations %}
                             {% if registration.latitude and registration.longitude %}
@@ -109,12 +113,47 @@
                                 </div>
                             {% else %}
                                 {# Utilisateur connecté : afficher le formulaire #}
-                                {{ form_start(registration_form) }}
+                                {{ form_start(registration_form, {'attr': {'id': 'registration-form'}}) }}
                                 <p class="text-muted mb-3">
                                     Vous vous inscrivez en tant que :<br>
                                     <strong>{{ app.user.firstName }} {{ app.user.lastName }}</strong><br>
                                     {{ app.user.email }}
                                 </p>
+
+                                {# Champ WhatsApp #}
+                                <div class="mb-3">
+                                    {{ form_label(registration_form.whatsappNumber) }}
+                                    {{ form_widget(registration_form.whatsappNumber) }}
+                                    {% if registration_form.whatsappNumber.vars.help is defined %}
+                                        <small class="form-text text-muted">{{ registration_form.whatsappNumber.vars.help }}</small>
+                                    {% endif %}
+                                    {{ form_errors(registration_form.whatsappNumber) }}
+                                </div>
+
+                                {# Partage de position GPS #}
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        {{ form_widget(registration_form.shareLocation) }}
+                                        {{ form_label(registration_form.shareLocation) }}
+                                    </div>
+                                    <small class="form-text text-muted">Permet à l'organisateur de vous localiser le jour de l'événement</small>
+                                </div>
+
+                                {# Bouton de géolocalisation #}
+                                <div class="mb-3" id="geolocation-container" style="display: none;">
+                                    <button type="button" id="get-location-btn" class="btn btn-outline-secondary btn-sm w-100">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="me-1">
+                                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                        </svg>
+                                        Obtenir ma position GPS
+                                    </button>
+                                    <div id="location-status" class="small mt-1"></div>
+                                </div>
+
+                                {# Champs cachés pour latitude/longitude #}
+                                {{ form_widget(registration_form.latitude, {'attr': {'id': 'registration-latitude'}}) }}
+                                {{ form_widget(registration_form.longitude, {'attr': {'id': 'registration-longitude'}}) }}
+
                                 <button type="submit" class="btn btn-primary w-100">
                                     S'inscrire à cet événement
                                 </button>
@@ -146,31 +185,52 @@
 
         {# Événements similaires #}
         {% if related_events|length > 0 %}
-            <h3 class="mt-5 mb-4">Événements similaires</h3>
-            <div class="row">
-                {% for relatedEvent in related_events %}
-                    <div class="col-md-4 mb-3">
-                        <div class="card h-100">
-                            {% if relatedEvent.image %}
-                                <img src="{{ asset('uploads/events/' ~ relatedEvent.image) }}" class="card-img-top" alt="{{ relatedEvent.title }}">
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ relatedEvent.title }}</h5>
-                                <p class="card-text text-muted small">
-                                     {{ relatedEvent.dateStart|date('d/m/Y') }}<br>
-                                     {{ relatedEvent.city }}
-                                </p>
-                                <p class="card-text">{{ relatedEvent.description|slice(0, 100) }}...</p>
+            <section class="similar-events-section mt-5">
+                <div class="container">
+                    <h3 class="similar-events-title">Événements similaires</h3>
+                    <div class="row g-4">
+                        {% for relatedEvent in related_events %}
+                            <div class="col-lg-4 col-md-6">
+                                <div class="card related-event-card h-100">
+                                    <div class="card-img-wrapper">
+                                        {% if relatedEvent.image %}
+                                            <img src="{{ asset('uploads/events/' ~ relatedEvent.image) }}"
+                                                 class="card-img-top" alt="{{ relatedEvent.title }}">
+                                        {% else %}
+                                            <img src="{{ asset('uploads/events/default-event.svg') }}"
+                                                 class="card-img-top" alt="Image par défaut">
+                                        {% endif %}
+                                    </div>
+                                    <div class="card-body">
+                                        {% if relatedEvent.category %}
+                                            <span class="event-category-badge">
+                                                {{ relatedEvent.category.name }}
+                                            </span>
+                                        {% endif %}
+                                        <h5 class="related-event-title">{{ relatedEvent.title }}</h5>
+                                        <div class="related-event-date">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10z"/>
+                                            </svg>
+                                            {{ relatedEvent.dateStart|date('d/m/Y') }}
+                                        </div>
+                                        <div class="related-event-location">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                            </svg>
+                                            {{ relatedEvent.city }}
+                                        </div>
+                                        <a href="{{ path('default_event_show', {'id': relatedEvent.id}) }}"
+                                           class="btn btn-outline-primary btn-view-event">
+                                            Voir l'événement
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="card-footer bg-transparent">
-                                <a href="{{ path('default_event_show', {'id': relatedEvent.id}) }}" class="btn btn-sm btn-outline-primary w-100">
-                                    Voir les détails
-                                </a>
-                            </div>
-                        </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
+                </div>
+            </section>
         {% endif %}
     </div>
 {% endblock %}
@@ -194,18 +254,35 @@
             return;
         }
 
-        // Coordonnees par defaut (M2I Schiltigheim)
-        const defaultLat = 48.6159;
-        const defaultLng = 7.7458;
+        // Coordonnees par defaut (Paris, France)
+        const defaultLat = 48.8566;
+        const defaultLng = 2.3522;
 
-        // Chercher les coordonnees des participants ou utiliser les coordonnees par defaut
+        // Determiner les coordonnees du centre de la carte
         let centerLat = defaultLat;
         let centerLng = defaultLng;
+        let hasEventCoords = false;
 
-        if (mapData.participants && mapData.participants.length > 0) {
-            // Utiliser les coordonnees du premier participant
-            centerLat = parseFloat(mapData.participants[0].lat);
-            centerLng = parseFloat(mapData.participants[0].lng);
+        // Priorite 1: Coordonnees de l'evenement
+        if (mapData.eventLat && mapData.eventLng) {
+            centerLat = parseFloat(mapData.eventLat);
+            centerLng = parseFloat(mapData.eventLng);
+            hasEventCoords = true;
+        }
+        // Priorite 2: Si pas de coordonnees, geocoder l'adresse via Nominatim
+        else if (mapData.eventCity) {
+            // Geocodage asynchrone
+            fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(mapData.eventAddress))
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lng = parseFloat(data[0].lon);
+                        map.setView([lat, lng], 14);
+                        eventMarker.setLatLng([lat, lng]);
+                    }
+                })
+                .catch(err => console.log('Geocoding error:', err));
         }
 
         // Initialiser la carte
@@ -248,5 +325,76 @@
             }
         }
     });
+
+    // Gestion de la géolocalisation pour l'inscription
+    const shareLocationCheckbox = document.getElementById('registration_form_shareLocation');
+    const geolocationContainer = document.getElementById('geolocation-container');
+    const getLocationBtn = document.getElementById('get-location-btn');
+    const locationStatus = document.getElementById('location-status');
+    const latitudeField = document.getElementById('registration-latitude');
+    const longitudeField = document.getElementById('registration-longitude');
+
+    if (shareLocationCheckbox) {
+        // Afficher/masquer le bouton de géolocalisation
+        shareLocationCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                geolocationContainer.style.display = 'block';
+            } else {
+                geolocationContainer.style.display = 'none';
+                // Réinitialiser les champs
+                if (latitudeField) latitudeField.value = '';
+                if (longitudeField) longitudeField.value = '';
+                if (locationStatus) locationStatus.innerHTML = '';
+            }
+        });
+    }
+
+    if (getLocationBtn) {
+        getLocationBtn.addEventListener('click', function() {
+            if (!navigator.geolocation) {
+                locationStatus.innerHTML = '<span class="text-danger">La géolocalisation n\'est pas supportée par votre navigateur.</span>';
+                return;
+            }
+
+            locationStatus.innerHTML = '<span class="text-info">Obtention de votre position...</span>';
+            getLocationBtn.disabled = true;
+
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+
+                    if (latitudeField) latitudeField.value = lat;
+                    if (longitudeField) longitudeField.value = lng;
+
+                    locationStatus.innerHTML = '<span class="text-success">Position obtenue avec succès !</span>';
+                    getLocationBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="me-1"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Position enregistrée';
+                    getLocationBtn.classList.remove('btn-outline-secondary');
+                    getLocationBtn.classList.add('btn-success');
+                },
+                function(error) {
+                    let errorMessage = 'Erreur inconnue';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage = 'Vous avez refusé l\'accès à votre position.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage = 'Position non disponible.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage = 'La requête a expiré.';
+                            break;
+                    }
+                    locationStatus.innerHTML = '<span class="text-danger">' + errorMessage + '</span>';
+                    getLocationBtn.disabled = false;
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        });
+    }
     </script>
 {% endblock %}
