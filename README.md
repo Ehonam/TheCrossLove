@@ -10,3 +10,5 @@ Processus de déploiement
 
 Ce système permet d’assurer un déploiement continu, fiable et sécurisé.
 
+
+[![CI & Deploy](https://github.com/Ehonam/TheCrossLove/actions/workflows/ci-cd-render.yml/badge.svg?branch=main)](https://github.com/Ehonam/TheCrossLove/actions/workflows/ci-cd-render.yml)
